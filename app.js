@@ -10,7 +10,6 @@ const loginRouter = require('./routes/login');
 const findRouter = require('./routes/find');
 const modRouter = require('./routes/modification');
 
-
 const app = express();
 
 // view engine setup
