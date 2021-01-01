@@ -37,10 +37,13 @@ module.exports = (sequelize, Datatypes) => {
     });
 
     user.associate = (models) => {
-        const { question, user_question } = models;
+        const { question, user_question, verification_code } = models;
     
         user.question = user.belongsToMany(question, {
             through: user_question,
+            foreignKey: "uid",
+        });
+        user.verification_code = user.hasOne(verification_code, {
             foreignKey: "uid",
         });
     };
