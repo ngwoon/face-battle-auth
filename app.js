@@ -3,14 +3,19 @@ const express = require('express');
 const path = require('path');
 const cookieParser = require('cookie-parser');
 const logger = require('morgan');
+const { sequelize } = require("./models");
 
 const verRouter = require('./routes/verification');
 const regRouter = require('./routes/registration');
 const loginRouter = require('./routes/login');
 const findRouter = require('./routes/find');
 const modRouter = require('./routes/modification');
+const indexRouter = require("./routes/index");
 
 const app = express();
+
+// sequelize init
+sequelize.sync();
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -22,7 +27,7 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.use("/index", usersRouter);
+app.use("/", indexRouter);
 app.use("/verification", verRouter);
 app.use("/registration", regRouter);
 app.use("/login", loginRouter);
@@ -37,6 +42,9 @@ app.use(function(req, res, next) {
 
 // error handler
 app.use(function(err, req, res, next) {
+
+  console.log(err);
+
   // set locals, only providing error in development
   res.locals.message = err.message;
   res.locals.error = req.app.get('env') === 'development' ? err : {};

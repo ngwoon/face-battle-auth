@@ -27,14 +27,12 @@ fs
 
 Object.keys(db).forEach(modelName => {
   if (db[modelName].associate) {
+    console.log(modelName);
     db[modelName].associate(db);
   }
 });
 
 db.sequelize = sequelize;
 db.Sequelize = Sequelize;
-
-db.user.belongsToMany({through: "user_question", foreignKey: "uid"});
-db.question.belongsToMany({through: "user_question", foreignKey: "qid"});
 
 module.exports = db;

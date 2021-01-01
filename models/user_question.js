@@ -4,5 +4,12 @@ module.exports = (sequelize, Datatypes) => {
             type: Datatypes.STRING(30),
             allowNull: true,
         },
+    }, {
+        timestamps: false,
+        freezeTableName: true,
+        underscored: true,
+        talbeName: "user_question",
     });
+
+    return user_question;
 };

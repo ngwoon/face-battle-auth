@@ -1,8 +1,8 @@
 module.exports = (sequelize, Datatypes) => {
     const user = sequelize.define('user', {
         uid: {
-            type: DataTypes.UUID,
-            defaultValue: DataTypes.UUIDV1,
+            type: Datatypes.INTEGER,
+            autoIncrement: true,
             primaryKey: true
         },
         email: {
@@ -25,5 +25,25 @@ module.exports = (sequelize, Datatypes) => {
             type: Datatypes.INTEGER,
             allowNull: true,
         },
+        valid: {
+            type: Datatypes.INTEGER,
+            allowNull: false,
+        }
+    }, {
+        timestamps: false,
+        freezeTableName: true,
+        underscored: true,
+        talbeName: "user",
     });
+
+    user.associate = (models) => {
+        const { question, user_question } = models;
+    
+        user.question = user.belongsToMany(question, {
+            through: user_question,
+            foreignKey: "uid",
+        });
+    };
+
+    return user;
 };
