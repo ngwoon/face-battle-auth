@@ -38,14 +38,16 @@ router.post('/email', function(req, res, next) {
 
     mail.sendMail(mailOptions, (error, info) => {
         if(error) {
+            console.log("회원에게 이메일 전송 에러");
+            console.log(error);
             body = {
                 resultCode: "01",
                 resultMsg: "이메일 전송 에러",
                 data: "실패"
             };
-            console.log("회원에게 이메일 전송 에러");
-            console.log(error);
         } else {
+            console.log("인증 이메일 전송 성공");
+            console.log(info);
             body = {
                 resultCode: "00",
                 resultMsg: "이메일 전송 완료",
