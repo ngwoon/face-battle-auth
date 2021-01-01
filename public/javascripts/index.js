@@ -13,13 +13,24 @@ $(document).ready(function(){
         const question = $(".js-selector").val();
         const answer = $(".js-answer").val();
     
-        // console.log(`${email}, ${name}, ${password}, ${birth_date}, ${question}, ${answer}`);
+        console.log(`${email}, ${name}, ${password}, ${birth_date}, ${question}, ${answer}`);
+
+        const data = {
+            email,
+            name,
+            password,
+            birth_date,
+            question,
+            answer,
+        };
         
         const url = "http://localhost:3000/registration";
         const method = "POST";
+        const dataType = "json";
+        const contentType = "application/json";
+        const sendData = JSON.stringify(data);
         const success = (data) => {
-            const res = JSON.parse(data);
-            switch(res.resultCode) {
+            switch(data.resultCode) {
                 case "00":
                     alert("인증 메일이 전송되었습니다.");
                     document.location.href = "http://localhost:3000/verification/email";
@@ -37,10 +48,13 @@ $(document).ready(function(){
         };
 
         $.ajax({
-            url,
-            method,
-            success,
-            fail: (error) => {
+            "url": url,
+            "method": method,
+            "dataType": dataType,
+            "data": sendData,
+            "contentType": contentType,
+            "success": success,
+            "fail": (error) => {
                 alert("ajax 에러");
                 alert(error);
             }
