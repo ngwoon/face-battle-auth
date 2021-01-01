@@ -18,7 +18,9 @@ router.post('/', async function(req, res, next) {
     const type = 0;
     const valid = 0;
 
-    let body = {};
+    console.log(`${email}, ${password}, ${name}, ${birth_date}, ${question}, ${answer}`);
+
+    const body = {};
 
     db.user.findOne({ where: { email: email, type: type } })
     .then(user => {
@@ -31,7 +33,8 @@ router.post('/', async function(req, res, next) {
 
             // 패스워드 해싱
             const hashedPassword = crypto.createHash("sha256").update(password).digest("base64");
-
+            
+            // 회원 정보 저장
             db.user.create({
                 email: email,
                 password: hashedPassword,
@@ -39,28 +42,35 @@ router.post('/', async function(req, res, next) {
                 birth_date: birth_date,
                 type: type,
                 valid: valid,
-            }).then(_ => {
-                const result = emailVerification.sendVerificationMail(email);
+            }).then(async (data) => {
+                // 인증 메일 발송
+                const result = await emailVerification.sendVerificationMail(email);
+                
+                // 발송 성공 시
                 if(result.resultMsg === "success") {
-
-                    const verificationCode = result.verificationCode;
+                    const verificationCode = result.code;
                     db.verification_code.create({
                         code: verificationCode,
                         expiry_date: Date.now()/1000 + VERIFICATION_EXPIRY_PERIOD,
+                        uid: data.uid,
                     }).then(_ => {
                         body.resultCode = "00";
                         body.resultMsg = "인증 메일 전송 성공";
                         body.item = {};
-                        body.json(body);
                     }).catch((error) => {
+
+                        console.log("인증 코드 저장 실패");
+                        console.log(error);
+
                         body.resultCode = "03";
                         body.resultMsg = "인증 코드 저장 실패";
                         body.item = {};
+                    }).finally(() => {
                         res.json(body);
                     });
-
-                    
-                } else {
+                } 
+                // 발송 실패 시
+                else {
                     body.resultCode = "02";
                     body.resultMsg = "인증 메일 전송 실패";
                     body.item = {};
@@ -70,5 +80,7 @@ router.post('/', async function(req, res, next) {
         }
     });
 });
+
+
 
 module.exports = router;
