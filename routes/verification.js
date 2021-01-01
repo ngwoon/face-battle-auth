@@ -1,7 +1,7 @@
 const express = require('express');
-const router = express.Router();
 const nodemailer = require("nodemailer");
 const crypto = require("crypto");
+const router = express.Router();
 
 const HASH_STRING = "Face Battle";
 const ADMIN_MAIL_ADDRESS = "todory2002@gmail.com";
