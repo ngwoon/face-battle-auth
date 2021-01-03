@@ -29,12 +29,10 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.use("/", indexRouter);
 app.use("/verification", verRouter);
-app.use("/verification-email", verRouter);
 app.use("/registration", regRouter);
 app.use("/login", loginRouter);
 app.use("/find", findRouter);
 app.use("/password", modRouter);
-
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
