@@ -23,9 +23,16 @@ module.exports = {
         return verificationCode;
     },
 
-    sendVerificationMail: async (clientAddress) => {
+    sendVerificationMail: async (clientAddress, verificationCode) => {
 
-        const result = {};
+        const result = {
+            success: {
+                resultMsg: "success",
+            },
+            fail: {
+                resultMsg: "fail",
+            }
+        };
 
         // TODO 관리자 이메일 비밀번호 숨겨야함.
         const mail = nodemailer.createTransport({
@@ -35,8 +42,6 @@ module.exports = {
                 pass: ADMIN_MAIL_PASSWORD,
             },
         });
-
-        const verificationCode = module.exports.createVerificationCode();
 
         const mailOptions = {
             from: ADMIN_MAIL_ADDRESS,
@@ -51,18 +56,16 @@ module.exports = {
                     console.log("회원에게 이메일 전송 에러");
                     console.log(error);
     
-                    result.resultMsg = "fail";
-                    result.code = null;
+                    result.fail.code = null;
 
-                    reject(result);
+                    reject(result.fail);
                 } else {
                     console.log("인증 이메일 전송 성공");
                     console.log(info);
                     
-                    result.resultMsg = "success";
-                    result.code = verificationCode;
+                    result.success.code = verificationCode;
 
-                    resolve(result);
+                    resolve(result.success);
                 }
             });
         });
