@@ -7,8 +7,8 @@ router.get("/email", function(req, res, next) {
     res.render("verification");
 });
 
-// verification-email
-router.post("/", async function(req, res, next) {
+// verification code
+router.post("/code", async function(req, res, next) {
 
     const retBody = {
         success: {
@@ -30,6 +30,9 @@ router.post("/", async function(req, res, next) {
     // 현재 요청을 보낸 클라이언트 정보
     let currentUser;
 
+    // 새로 생성한 인증 코드
+    let verificationCode;
+
     // 클라이언트 이메일
     const email = req.body.email;
 
@@ -41,7 +44,7 @@ router.post("/", async function(req, res, next) {
         
         // 새로운 인증코드 발급을 위해 해당 인증코드 삭제
         if(verificationCodeRow)
-            await db.verification_code.destroy({ where: { code: verificationCodeRow.code } });
+            await db.verification_code.destroy({ where: { uid: currentUser.uid } });
 
     } catch(error) {
         console.log("만료된 인증코드 삭제 오류");
@@ -50,10 +53,9 @@ router.post("/", async function(req, res, next) {
         return;
     }
 
-
     try {
         // 인증 코드 생성
-        const verificationCode = emailVerification.createVerificationCode();
+        verificationCode = emailVerification.createVerificationCode();
 
         // 인증 코드 저장
         createdRow = await db.verification_code.create({
@@ -70,7 +72,8 @@ router.post("/", async function(req, res, next) {
 
     try {
         // 인증 메일 발송
-        const sendMailResult = await emailVerification.sendVerificationMail(email);
+        await emailVerification.sendVerificationMail(email, verificationCode);
+        res.json(retBody.success);
     } catch(error) {
         console.log("인증코드 이메일 전송 실패");
         console.log(error);
@@ -88,6 +91,7 @@ router.post("/", async function(req, res, next) {
 
 router.post('/email', async function(req, res, next) {
     const code = req.body.code;
+
     const body = {};
 
     const result = await db.verification_code.findOne({ where: { code: code } });
