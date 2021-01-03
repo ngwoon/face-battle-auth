@@ -12,7 +12,7 @@ router.post('/', async function(req, res, next) {
     const email = req.body.email;
     const password = req.body.password;
     const name = req.body.name;
-    const birth_date = req.body.birth_date;
+    const birth_date = req.body.birthDate;
     const question = req.body.question;
     const answer = req.body.answer;
     const type = 0;
