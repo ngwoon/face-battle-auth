@@ -10,6 +10,19 @@ const MAIL_CONTENT = "Face Battle 앱에 회원이 된 것을 축하드립니다
                     <h2>";
 
 module.exports = {
+
+    VERIFICATION_EXPIRY_PERIOD: 300, 
+
+    createVerificationCode: () => {
+        // 인증 코드 생성
+        const hashString = crypto.createHash("sha256").update(HASH_STRING).digest("base64");
+        const randNum = Math.floor(Math.random() * (hashString.length - 6));
+        
+        const verificationCode = hashString.slice(randNum, randNum + 6);
+
+        return verificationCode;
+    },
+
     sendVerificationMail: async (clientAddress) => {
 
         const result = {};
@@ -23,11 +36,7 @@ module.exports = {
             },
         });
 
-        // 인증 코드 생성
-        const hashString = crypto.createHash("sha256").update(HASH_STRING).digest("base64");
-        const randNum = Math.floor(Math.random() * (hashString.length - 6));
-        
-        const verificationCode = hashString.slice(randNum, randNum + 6);
+        const verificationCode = module.exports.createVerificationCode();
 
         const mailOptions = {
             from: ADMIN_MAIL_ADDRESS,
@@ -57,5 +66,5 @@ module.exports = {
                 }
             });
         });
-    }
+    },
 }
