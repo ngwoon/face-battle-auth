@@ -1,6 +1,7 @@
 const express = require('express');
-const emailVerification = require("../middlewares/email-verification.js");
 const db = require("../models");
+const emailVerification = require("../middlewares/email-verification.js");
+const jwt = require("../middlewares/jwt");
 const router = express.Router();
 
 router.get("/email", function(req, res, next) {
@@ -90,36 +91,83 @@ router.post("/code", async function(req, res, next) {
 });
 
 router.post('/email', async function(req, res, next) {
+    const retBody = {
+        success: {
+            resultCode: "00",
+            resultMsg: "인증 코드 검증 성공",
+            item: {},
+        },
+        fail: {
+            exceededExpiryDate: {
+                resultCode: "01",
+                resultMsg: "인증 코드 일치하지 않음",
+                item: {},
+            },
+            inconsistVerificationCode: {
+                resultCode: "02",
+                resultMsg: "인증 코드 만료 기간이 지남",
+                item: {},
+            },
+            serverError: {
+                resultCode: "03",
+                resultMsg: "서버 오류",
+                item: {},
+            },
+        },
+    };
+    
     const code = req.body.code;
+    const email = req.body.email;
+    const type = 0;
+    let currentUser, verificationCodeRow;
 
-    const body = {};
+    try {
+        currentUser = await db.user.findOne({ where: { email: email, type: type } });
+        verificationCodeRow = await db.verification_code.findOne({ where: { uid: currentUser.uid } });
+    } catch(error) {
+        console.log("DB 인증 코드 탐색 오류");
+        console.log(error);
+        res.status(500).json(retBody.fail.serverError);
+        return;
+    }
 
-    const result = await db.verification_code.findOne({ where: { code: code } });
 
-    if(result) {
+
+    // DB에 일치하는 인증 코드가 존재하는 경우
+    if(verificationCodeRow && verificationCodeRow.code === code) {
 
         const currentDate = Date.now() / 1000;
-        if(result.expiry_date > currentDate) {
-            body.resultCode = "00";
-            body.resultMsg = "이메일 인증 성공";
-            body.item = {};
 
-            db.user.update({ valid: 1 }, { where : { uid: result.uid } });
+        // 만료 기간이 유효한 경우
+        if(verificationCodeRow.expiry_date >= currentDate) {
+            try {
 
-        } else if(result.expiry_date <= currentDate) {
-            body.resultCode = "01";
-            body.resultMsg = "이메일 인증 실패. 만료 기간이 지났습니다.";
-            body.item = {};
-        }
-        db.verification_code.destroy({ where: { code: code } });
+                await db.sequelize.transaction(async (t) => {
+                    await db.user.update({ valid: 1 }, { where : { uid: verificationCodeRow.uid }, transaction: t});
+                    await db.verification_code.destroy({ where: { code: code }, transaction: t});
+                });
 
-    } else {
-        body.resultCode = "02";
-        body.resultMsg = "이메일 인증 실패. 인증 코드가 다릅니다.";
-        body.item = {};
-    }  
+                // JWT 토큰 생성
+                createdJWT = jwt.createJWT(email, currentUser.name, type);
+                retBody.success.item.jwt = createdJWT;
 
-    res.json(body);
+                res.status(200).json(retBody.success);
+
+            } catch(error) {
+                console.log("회원 활성화 실패");
+                console.log(error);
+                res.status(500).json(retBody.fail.serverError);
+            }
+        } 
+        // 만료 기간이 지난 경우
+        else if(verificationCodeRow.expiry_date < currentDate)
+            res.status(200).json(retBody.fail.exceededExpiryDate);
+    } 
+
+    // DB에 일치하는 인증 코드가 없는 경우
+    else
+        res.status(200).json(retBody.fail.inconsistVerificationCode);
+
 });
 
 module.exports = router;
