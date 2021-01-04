@@ -3,7 +3,6 @@ const crypto = require("crypto");
 const db = require("../models");
 const router = express.Router();
 
-/* GET home page. */
 router.post('/', async function(req, res, next) {
     
     const retBody = {
@@ -48,6 +47,48 @@ router.post('/', async function(req, res, next) {
         console.log("회원정보 저장 실패");
         console.log(error);
         res.json(retBody.fail);
+    }
+});
+
+router.post("/check/email", async function(req, res, next) {
+    const retBody = {
+        success: {
+            resultCode: "00",
+            resultMsg: "중복된 이메일 없음",
+            item: {},
+        },
+        fail: {
+            duplicatedEmailExists: {
+                resultCode: "01",
+                resultMsg: "중복된 이메일 존재",
+                item: {},
+            },
+            serverError: {
+                resultCode: "02",
+                resultMsg: "서버 에러",
+                item: {},  
+            },
+        },
+    };
+
+    const email = req.body.email;
+    const type = 0;
+
+    try {
+        const duplicatedUser = await db.user.findOne({ where: { email: email, type: type } });
+
+        // 중복된 이메일 존재 시
+        if(duplicatedUser)
+            res.status(200).json(retBody.fail.duplicatedEmailExists);
+
+        // 중복된 이메일 없을 시
+        else
+            res.status(200).json(retBody.success);
+
+    } catch(error) {
+        console.log("DB 중복 이메일 확인 오류");
+        console.log(error);
+        res.status(500).json(retBody.fail.serverError);
     }
 });
 
