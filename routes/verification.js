@@ -4,10 +4,6 @@ const emailVerification = require("../middlewares/email-verification.js");
 const jwt = require("../middlewares/jwt");
 const router = express.Router();
 
-router.get("/email", function(req, res, next) {
-    res.render("verification");
-});
-
 // verification code
 router.post("/code", async function(req, res, next) {
 
@@ -18,9 +14,16 @@ router.post("/code", async function(req, res, next) {
             item: {},
         },
         fail: {
-            resultCode: "01",
-            resultMsg: "이메일 인증 코드 발송 실패",
-            item: {},
+            sendMailError: {
+                resultCode: "01",
+                resultMsg: "이메일 인증 코드 발송 실패",
+                item: {},
+            },
+            serverError: {
+                resultCode: "02",
+                resultMsg: "서버 오류",
+                item: {},
+            },
         }
     }
 
@@ -50,7 +53,7 @@ router.post("/code", async function(req, res, next) {
     } catch(error) {
         console.log("만료된 인증코드 삭제 오류");
         console.log(error);
-        res.json(retBody.fail);
+        res.status(500).json(retBody.fail.serverError);
         return;
     }
 
@@ -64,17 +67,18 @@ router.post("/code", async function(req, res, next) {
             expiry_date: Date.now()/1000 + emailVerification.VERIFICATION_EXPIRY_PERIOD,
             uid: currentUser.uid,
         });
+
     } catch(error) {
         console.log("인증 코드 저장 실패");
         console.log(error);
-        res.json(retBody.fail);
+        res.status(500).json(retBody.fail.serverError);
         return;
     }
 
     try {
         // 인증 메일 발송
         await emailVerification.sendVerificationMail(email, verificationCode);
-        res.json(retBody.success);
+        res.status(200).json(retBody.success);
     } catch(error) {
         console.log("인증코드 이메일 전송 실패");
         console.log(error);
