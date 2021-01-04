@@ -3,6 +3,7 @@ const crypto = require("crypto");
 const db = require("../models");
 const router = express.Router();
 
+// 회원정보 등록
 router.post('/', async function(req, res, next) {
     
     const retBody = {
@@ -12,9 +13,11 @@ router.post('/', async function(req, res, next) {
             item: {},
         },
         fail: {
-            resultCode: "01",
-            resultMsg: "회원정보 저장 실패",
-            item: {},
+            serverError: {
+                resultCode: "01",
+                resultMsg: "회원정보 저장 실패",
+                item: {},
+            },
         },
     };
     
@@ -42,14 +45,16 @@ router.post('/', async function(req, res, next) {
             type: type,
             valid: valid,
         });
-        res.json(retBody.success);
+        res.status(200).json(retBody.success);
     } catch(error) {
         console.log("회원정보 저장 실패");
         console.log(error);
-        res.json(retBody.fail);
+        res.status(500).json(retBody.fail.serverError);
     }
 });
 
+
+// 중복 이메일 확인
 router.post("/check/email", async function(req, res, next) {
     const retBody = {
         success: {
