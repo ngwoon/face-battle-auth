@@ -24,26 +24,34 @@ router.post('/', async function(req, res, next) {
     const email = req.body.email;
     const password = req.body.password;
     const name = req.body.name;
-    const birth_date = req.body.birthDate;
-    const question = req.body.question;
+    const birthDate = req.body.birthDate;
+    const qid = req.body.qid;
     const answer = req.body.answer;
     const type = 0;
     const valid = 0;
 
-    console.log(`${email}, ${password}, ${name}, ${birth_date}, ${question}, ${answer}`);
+    console.log(`${email}, ${password}, ${name}, ${birthDate}, ${qid}, ${answer}`);
     
     // 패스워드 해싱
     const hashedPassword = crypto.createHash("sha256").update(password).digest("base64");
 
     try {
         // 회원 정보 저장
-        await db.user.create({
-            email: email,
-            password: hashedPassword,
-            name: name,
-            birth_date: birth_date,
-            type: type,
-            valid: valid,
+        await db.sequelize.transaction(async (t) => {
+            const createdUser = await db.user.create({
+                email: email,
+                password: hashedPassword,
+                name: name,
+                birth_date: birthDate,
+                type: type,
+                valid: valid,
+            });
+
+            await db.user_question.create({
+                uid: createdUser.uid,
+                qid: qid,
+                answer: answer,
+            });
         });
         res.status(200).json(retBody.success);
     } catch(error) {
