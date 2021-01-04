@@ -12,11 +12,15 @@ module.exports = {
      * }], {});
     */
     await queryInterface.bulkInsert("question", [{
-        title: "나의 초등학교 이름은?"
+        title: "태어난 출생지는?"
       }, {
-        title: "나의 아버지 성함은?", 
+        title: "다녔던 초등학교 이름은?", 
       }, {
-        title: "내가 가장 기억에 남는 일은?",
+        title: "다녔던 중학교 이름은?",
+      }, {
+        title: "어머니의 성함은?",
+      }, {
+        title: "나의 보물 1호는?",
       }
     ]);
   },

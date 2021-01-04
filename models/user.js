@@ -6,7 +6,7 @@ module.exports = (sequelize, Datatypes) => {
             primaryKey: true
         },
         email: {
-            type: Datatypes.STRING(30),
+            type: Datatypes.STRING(127),
             allowNull: true,
         },
         password: {
@@ -14,7 +14,7 @@ module.exports = (sequelize, Datatypes) => {
             allowNull: true,
         },
         name: {
-            type: Datatypes.STRING(20),
+            type: Datatypes.STRING(6),
             allowNull: false,
         },
         birth_date: {
@@ -43,8 +43,10 @@ module.exports = (sequelize, Datatypes) => {
             through: user_question,
             foreignKey: "uid",
         });
+
         user.verification_code = user.hasOne(verification_code, {
             foreignKey: "uid",
+            onDelete: "cascade",
         });
     };
 
