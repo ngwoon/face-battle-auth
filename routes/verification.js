@@ -9,18 +9,18 @@ router.post("/code", async function(req, res, next) {
 
     const retBody = {
         success: {
-            resultCode: "00",
+            resultCode: "200",
             resultMsg: "이메일 인증 코드 발송 성공",
             item: {},
         },
         fail: {
             sendMailError: {
-                resultCode: "01",
+                resultCode: "500",
                 resultMsg: "이메일 인증 코드 발송 실패",
                 item: {},
             },
             serverError: {
-                resultCode: "02",
+                resultCode: "500",
                 resultMsg: "서버 오류",
                 item: {},
             },
@@ -83,7 +83,7 @@ router.post("/code", async function(req, res, next) {
         console.log("인증코드 이메일 전송 실패");
         console.log(error);
 
-        res.status(200).json(retBody.fail.sendMailError);
+        res.status(500).json(retBody.fail.sendMailError);
 
         try {
             await db.verification_code.destroy({ where: { uid: createdRow.uid } });
@@ -97,23 +97,23 @@ router.post("/code", async function(req, res, next) {
 router.post('/email', async function(req, res, next) {
     const retBody = {
         success: {
-            resultCode: "00",
+            resultCode: "200",
             resultMsg: "인증 코드 검증 성공",
             item: {},
         },
         fail: {
             exceededExpiryDate: {
-                resultCode: "01",
+                resultCode: "400",
                 resultMsg: "인증 코드 일치하지 않음",
                 item: {},
             },
             inconsistVerificationCode: {
-                resultCode: "02",
+                resultCode: "400",
                 resultMsg: "인증 코드 만료 기간이 지남",
                 item: {},
             },
             serverError: {
-                resultCode: "03",
+                resultCode: "500",
                 resultMsg: "서버 오류",
                 item: {},
             },
@@ -165,12 +165,12 @@ router.post('/email', async function(req, res, next) {
         } 
         // 만료 기간이 지난 경우
         else if(verificationCodeRow.expiry_date < currentDate)
-            res.status(200).json(retBody.fail.exceededExpiryDate);
+            res.status(400).json(retBody.fail.exceededExpiryDate);
     } 
 
     // DB에 일치하는 인증 코드가 없는 경우
     else
-        res.status(200).json(retBody.fail.inconsistVerificationCode);
+        res.status(400).json(retBody.fail.inconsistVerificationCode);
 
 });
 
