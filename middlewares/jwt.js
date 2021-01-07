@@ -16,8 +16,8 @@ module.exports = {
         };
         return jwt.sign(payload, secret, options);
     },
-    verifyJWT: (auth) => {
-        const payload = jwt.verify(auth, SECRET);
+    verifyJWT: (token) => {
+        const payload = jwt.verify(token, SECRET);
         console.log("payload exp");
         console.log(payload.exp);
         console.log(Date.now()/1000);
