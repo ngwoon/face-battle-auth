@@ -17,14 +17,30 @@ module.exports = {
         return jwt.sign(payload, secret, options);
     },
     verifyJWT: (token) => {
-        const payload = jwt.verify(token, SECRET);
-        console.log("payload exp");
-        console.log(payload.exp);
-        console.log(Date.now()/1000);
-        if(payload.exp && payload.exp > Date.now()/1000)
-            return true;
-        else
-            return false;
+
+        let isValid;
+
+        try {
+
+            jwt.verify(token, SECRET);
+            isValid = true;
+
+        } catch(error) {
+            
+            if(error.name === "TokenExpiredError")
+                console.log("JWT 만료");
+
+            else if(error.name === "JsonWebTokenError")
+                console.log(error.message);
+
+            else if(error.name === "NotBeforeError")
+                console.log("nbf 오류");
+
+            isValid = false;
+            
+        } finally {
+            return isValid;
+        }
     },
 };
 
