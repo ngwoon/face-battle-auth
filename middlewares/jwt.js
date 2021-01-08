@@ -4,7 +4,7 @@ const EXPIRE_TERM = 10;
 const SECRET = "test";
 
 module.exports = {
-    createJWT: (email, name, type) => {
+    createJWT: (email, name, type, expiresIn = EXPIRE_TERM) => {
         const payload = {
             email,
             name,
@@ -37,7 +37,7 @@ module.exports = {
                 console.log("nbf 오류");
 
             isValid = false;
-            
+
         } finally {
             return isValid;
         }
