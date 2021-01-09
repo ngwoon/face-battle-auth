@@ -12,7 +12,7 @@ module.exports = {
         };
         const secret = SECRET;
         const options = {
-            expiresIn: EXPIRE_TERM,
+            expiresIn,
         };
         return jwt.sign(payload, secret, options);
     },
@@ -24,7 +24,7 @@ module.exports = {
 
             jwt.verify(token, SECRET);
             isValid = true;
-
+        
         } catch(error) {
             
             if(error.name === "TokenExpiredError")
