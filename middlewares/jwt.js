@@ -4,7 +4,7 @@ const EXPIRE_TERM = 10;
 const SECRET = "test";
 
 module.exports = {
-    createJWT: (email, name, type) => {
+    createJWT: (email, name, type, expiresIn = EXPIRE_TERM) => {
         const payload = {
             email,
             name,
@@ -16,15 +16,31 @@ module.exports = {
         };
         return jwt.sign(payload, secret, options);
     },
-    verifyJWT: (auth) => {
-        const payload = jwt.verify(auth, SECRET);
-        console.log("payload exp");
-        console.log(payload.exp);
-        console.log(Date.now()/1000);
-        if(payload.exp && payload.exp > Date.now()/1000)
-            return true;
-        else
-            return false;
+    verifyJWT: (token) => {
+
+        let isValid;
+
+        try {
+
+            jwt.verify(token, SECRET);
+            isValid = true;
+
+        } catch(error) {
+            
+            if(error.name === "TokenExpiredError")
+                console.log("JWT 만료");
+
+            else if(error.name === "JsonWebTokenError")
+                console.log(error.message);
+
+            else if(error.name === "NotBeforeError")
+                console.log("nbf 오류");
+
+            isValid = false;
+
+        } finally {
+            return isValid;
+        }
     },
 };
 
