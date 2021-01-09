@@ -91,6 +91,11 @@ router.post("/oauth", async function(req, res, next) {
                 resultMsg: "유효하지 않은 접근 토큰",
                 item: {},
             },
+            invalidParams: {
+                resultCode: "400",
+                resultMsg: "필수 파라미터 누락",
+                item: {},
+            },
             serverError: {
                 resultCode: "500",
                 resultMsg: "서버 오류",
@@ -105,7 +110,13 @@ router.post("/oauth", async function(req, res, next) {
     const type = req.body.type;
     const expiresIn = req.body.expiresIn;
 
-    console.log(`${accessToken}, ${type}, ${expiresIn}`);
+    // console.log(`${accessToken}, ${type}, ${expiresIn}`);
+
+    // 필수 파라미터 확인
+    if(!(accessToken && type && expiresIn)) {
+        next(retBody.fail.invalidParams);
+        return;
+    }
 
     let email, name;
 
@@ -116,28 +127,37 @@ router.post("/oauth", async function(req, res, next) {
 
             
         case 2:
-            axios({
-                url: urls[type],
-                method: "GET",
-                headers: {
-                    "Authorization": `Bearer ${accessToken}`
+            try {
+                const asResponse = await axios({
+                    url: urls[type],
+                    method: "GET",
+                    headers: {
+                        "Authorization": `Bearer ${accessToken}`
+                    }
+                });
+        
+                email = asResponse.data.response.email;
+                name = asResponse.data.response.name;
+
+            } catch(asResponse) {
+                
+                // 유효하지 않은 접근 토큰 처리
+                if(asResponse.response.data) {
+                    next(retBody.fail.invalidAccessToken);
+                    return;
                 }
-            }).then((data) => {
-                console.log(data);
-                console.log("네이버 access token 인증 완료");
-                res.status(200).send("nice");
-            }).catch(error => {
-                console.log("네이버 access token 에러");
-                res.status(400).send("nice");
-            });
-            console.log("네이버 axios");
+
+                // axios 자체 실패
+                console.log("네이버 접근 토큰 검증 axios 실패");
+                next(retBody.fail.serverError);
+                return;
+            }
+
             break;
 
 
         case 3:
-
             try {
-
                 const asResponse = await axios({
                     url: `${urls[type]}=${accessToken}`,
                     method: "get",
@@ -168,7 +188,6 @@ router.post("/oauth", async function(req, res, next) {
     const createdJWT = console.log(email, name, type, expiresIn);
     retBody.success.item.jwt = createdJWT;
     res.status(201).json(retBody.success);
-
 
 
     /*
