@@ -36,7 +36,7 @@ router.post('/', async function(req, res, next) {
     const valid = 0;
 
     if(!(email && password && name && birthDate && qid && answer)) {
-        res.status(400).json(retBody.fail.invalidParams);
+        next(retBody.fail.invalidParams);
         return;
     }
 
@@ -67,7 +67,7 @@ router.post('/', async function(req, res, next) {
     } catch(error) {
         console.log("회원정보 저장 실패");
         console.log(error);
-        res.status(500).json(retBody.fail.serverError);
+        next(retBody.fail.serverError);
     }
 });
 
@@ -102,7 +102,7 @@ router.post("/check/email", async function(req, res, next) {
 
         // 중복된 이메일 존재 시
         if(duplicatedUser)
-            res.status(404).json(retBody.fail.duplicatedEmailExists);
+            next(retBody.fail.duplicatedEmailExists);
 
         // 중복된 이메일 없을 시
         else
@@ -111,7 +111,7 @@ router.post("/check/email", async function(req, res, next) {
     } catch(error) {
         console.log("DB 중복 이메일 확인 오류");
         console.log(error);
-        res.status(500).json(retBody.fail.serverError);
+        next(retBody.fail.serverError);
     }
 });
 

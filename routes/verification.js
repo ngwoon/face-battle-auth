@@ -53,7 +53,7 @@ router.post("/code", async function(req, res, next) {
     } catch(error) {
         console.log("만료된 인증코드 삭제 오류");
         console.log(error);
-        res.status(500).json(retBody.fail.serverError);
+        next(retBody.fail.serverError);
         return;
     }
 
@@ -71,7 +71,7 @@ router.post("/code", async function(req, res, next) {
     } catch(error) {
         console.log("인증 코드 저장 실패");
         console.log(error);
-        res.status(500).json(retBody.fail.serverError);
+        next(retBody.fail.serverError);
         return;
     }
 
@@ -83,7 +83,7 @@ router.post("/code", async function(req, res, next) {
         console.log("인증코드 이메일 전송 실패");
         console.log(error);
 
-        res.status(500).json(retBody.fail.sendMailError);
+        next(retBody.fail.sendMailError);
 
         try {
             await db.verification_code.destroy({ where: { uid: createdRow.uid } });
@@ -131,7 +131,7 @@ router.post('/email', async function(req, res, next) {
     } catch(error) {
         console.log("DB 인증 코드 탐색 오류");
         console.log(error);
-        res.status(500).json(retBody.fail.serverError);
+        next(retBody.fail.serverError);
         return;
     }
 
@@ -160,17 +160,17 @@ router.post('/email', async function(req, res, next) {
             } catch(error) {
                 console.log("회원 활성화 실패");
                 console.log(error);
-                res.status(500).json(retBody.fail.serverError);
+                next(retBody.fail.serverError);
             }
         } 
         // 만료 기간이 지난 경우
         else if(verificationCodeRow.expiry_date < currentDate)
-            res.status(400).json(retBody.fail.exceededExpiryDate);
+            next(retBody.fail.exceededExpiryDate);
     } 
 
     // DB에 일치하는 인증 코드가 없는 경우
     else
-        res.status(400).json(retBody.fail.inconsistVerificationCode);
+        next(retBody.fail.inconsistVerificationCode);
 
 });
 

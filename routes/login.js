@@ -91,6 +91,11 @@ router.post("/oauth", async function(req, res, next) {
                 resultMsg: "유효하지 않은 접근 토큰",
                 item: {},
             },
+            invalidParams: {
+                resultCode: "400",
+                resultMsg: "필수 파라미터 누락",
+                item: {},
+            },
             serverError: {
                 resultCode: "500",
                 resultMsg: "서버 오류",
@@ -105,9 +110,15 @@ router.post("/oauth", async function(req, res, next) {
     const type = req.body.type;
     const expiresIn = req.body.expiresIn;
 
-    console.log(`${accessToken}, ${type}, ${expiresIn}`);
+    let email, name, currentUser;
 
-    let email, name;
+    // console.log(`${accessToken}, ${type}, ${expiresIn}`);
+
+    // 필수 파라미터 확인
+    if(!(accessToken && type && expiresIn)) {
+        next(retBody.fail.invalidParams);
+        return;
+    }
 
     switch(type) {
         case 1:
@@ -116,28 +127,37 @@ router.post("/oauth", async function(req, res, next) {
 
             
         case 2:
-            axios({
-                url: urls[type],
-                method: "GET",
-                headers: {
-                    "Authorization": `Bearer ${accessToken}`
+            try {
+                const asResponse = await axios({
+                    url: urls[type],
+                    method: "GET",
+                    headers: {
+                        "Authorization": `Bearer ${accessToken}`
+                    }
+                });
+        
+                email = asResponse.data.response.email;
+                name = asResponse.data.response.name;
+
+            } catch(asResponse) {
+                
+                // 유효하지 않은 접근 토큰 처리
+                if(asResponse.response.data) {
+                    next(retBody.fail.invalidAccessToken);
+                    return;
                 }
-            }).then((data) => {
-                console.log(data);
-                console.log("네이버 access token 인증 완료");
-                res.status(200).send("nice");
-            }).catch(error => {
-                console.log("네이버 access token 에러");
-                res.status(400).send("nice");
-            });
-            console.log("네이버 axios");
+
+                // axios 자체 실패
+                console.log("네이버 접근 토큰 검증 axios 실패");
+                next(retBody.fail.serverError);
+                return;
+            }
+
             break;
 
 
         case 3:
-
             try {
-
                 const asResponse = await axios({
                     url: `${urls[type]}=${accessToken}`,
                     method: "get",
@@ -164,44 +184,39 @@ router.post("/oauth", async function(req, res, next) {
     }
 
 
-    // JWT 생성 및 성공 응답 리턴
-    const createdJWT = console.log(email, name, type, expiresIn);
-    retBody.success.item.jwt = createdJWT;
-    res.status(201).json(retBody.success);
-
-
-
-    /*
-        회원가입 필요한 회원인지 확인. 필요하다면 회원정보 저장
-        만약 저장 중 오류가 발생해도, 다음 소셜 로그인 시 저장 여부를 확인하므로 별다른 처리가 필요 없음
-        이에 비동기 처리함
-    */
-    db.user.findOne({ where : { email: email, type: type } })
-    .then(data => {
-        if(!data) {
-            db.user.create({
-                email: email,
+    try {
+        currentUser = await db.user.findOne({ where : { email: email, type: type }, raw: true });
+        
+        if(!currentUser) {
+            currentUser = await db.user.create({
+                email,
                 password: null,
-                name: name,
+                name,
                 birth_date: null,
-                type: type,
+                type,
                 valid: 1,
-            })
-            .then(_ => {})
-            .catch(error => {
-                if(error) {
-                    console.log("소셜 회원 DB 저장 오류");
-                    console.log(error);
-                }
-            });
+            }, { raw: true });
         }
-    })
-    .catch(error => {
-        if(error) {
-            console.log("DB 조회 오류");
-            console.log(error);
-        }
-    });
+
+    } catch(error) {
+        console.log("소셜 회원 DB 저장 오류");
+        console.log(error);
+        next(retBody.fail.serverError);
+        return;
+    }
+
+
+    // JWT 생성
+    const createdJWT = jwt.createJWT(email, name, type, expiresIn);
+
+    // 클라이언트에게 전달할 유저 정보에서 패스워드 제외
+    delete currentUser.password;
+
+    // 반환 item에 사용자 정보, JWT 삽입
+    retBody.success.item.jwt = createdJWT;
+    retBody.success.item.userInfo = currentUser;
+
+    res.status(200).json(retBody.success);
 });
 
 

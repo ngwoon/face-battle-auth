@@ -67,9 +67,9 @@ function authenticateUser(req, res, next) {
         if(token && jwt.verifyJWT(token))
             next();
         else
-            res.status(401).json(retBody.fail.invalidToken);
+            next(retBody.fail.invalidToken);
     } else
-        res.status(400).json(retBody.fail.unauthenticatedClient);
+        next(retBody.fail.unauthenticatedClient);
 }
 
 
@@ -99,7 +99,6 @@ app.use(function(err, req, res, next) {
     // res.render('error');
 
     res.status(err.resultCode || err.status).json(err);
-
 });
 
 module.exports = app;
