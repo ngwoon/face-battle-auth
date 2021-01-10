@@ -5,6 +5,7 @@ const cookieParser = require('cookie-parser');
 const logger = require('morgan');
 const { sequelize } = require("./models");
 const jwt = require("./middlewares/jwt");
+const dotenv = require("dotenv");
 
 const indexRouter = require("./routes/index");
 const verRouter = require('./routes/verification');
@@ -19,14 +20,27 @@ const app = express();
 sequelize.sync();
 
 // view engine setup
-app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'jade');
+// app.set('views', path.join(__dirname, 'views'));
+// app.set('view engine', 'jade');
+// app.use(express.static(path.join(__dirname, 'public')));
 
-app.use(logger('dev'));
+if(process.env.NODE_ENV === "development") {
+    console.log("NODE_ENV is development");
+    dotenv.config({ path: path.join(__dirname, "./env/development.env")});
+} else if(process.env.NODE_ENV === "production") {
+    console.log("NODE_ENV is production");
+    dotenv.config({ path: path.join(__dirname, "./env/production.env")});
+} else {
+    console.log("NODE_ENV를 찾을 수 없습니다.");
+    process.exit(1);
+}
+
+
+app.use(logger(process.env.LOGGER_MODE));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
-app.use(express.static(path.join(__dirname, 'public')));
+
 
 
 
