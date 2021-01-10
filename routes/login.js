@@ -39,11 +39,8 @@ router.post('/normal', async function(req, res, next) {
     const type = 0;
 
     // 클라이언트가 필수 파라미터를 충족시키지 않았을 경우
-    if(!(email && password)) {
-        res.status(400).json(retBody.fail.invalidParams);
-        return;
-    }
-    
+    if(!(email && password))
+        return next(retBody.fail.invalidParams);
 
 
     const hashedPassword = crypto.createHash("sha256").update(password).digest("base64");
@@ -65,14 +62,12 @@ router.post('/normal', async function(req, res, next) {
 
             res.status(201).json(retBody.success);
         } else
-            res.status(404).json(retBody.fail.inconsistentUserInfo);
+            next(retBody.fail.inconsistentUserInfo);
 
     } catch(error) {
         console.log("DB 조회 오류");
         console.log(error);
-
-        res.status(500).json(retBody.fail.serverError);
-        return;
+        next(retBody.fail.serverError);
     }
 });
 
@@ -104,7 +99,7 @@ router.post("/oauth", async function(req, res, next) {
         },
     }
 
-    const urls = ["", "카카오 url", "https://openapi.naver.com/v1/nid/me", "https://www.googleapis.com/oauth2/v3/userinfo?access_token"]
+    const urls = ["", "https://kapi.kakao.com/v2/user/me", "https://openapi.naver.com/v1/nid/me", "https://www.googleapis.com/oauth2/v3/userinfo?access_token"]
 
     const accessToken = req.body.accessToken;
     const type = req.body.type;
@@ -115,16 +110,27 @@ router.post("/oauth", async function(req, res, next) {
     // console.log(`${accessToken}, ${type}, ${expiresIn}`);
 
     // 필수 파라미터 확인
-    if(!(accessToken && type && expiresIn)) {
-        next(retBody.fail.invalidParams);
-        return;
-    }
+    if(!(accessToken && type && expiresIn))
+        return next(retBody.fail.invalidParams);
 
     switch(type) {
         case 1:
-            
-            break;
+            try {
+                const asResponse = await axios({
+                    url: urls[type],
+                    method: "GET",
+                    headers: {
+                        "Authorization": `Bearer ${accessToken}`,
+                    }
+                });
 
+                email = asResponse.data.kakao_account.email;
+                name = asResponse.data.properties.nickname;
+
+            } catch(error) {
+                return next(retBody.fail.invalidAccessToken);
+            }
+            break;
             
         case 2:
             try {
@@ -139,22 +145,10 @@ router.post("/oauth", async function(req, res, next) {
                 email = asResponse.data.response.email;
                 name = asResponse.data.response.name;
 
-            } catch(asResponse) {
-                
-                // 유효하지 않은 접근 토큰 처리
-                if(asResponse.response.data) {
-                    next(retBody.fail.invalidAccessToken);
-                    return;
-                }
-
-                // axios 자체 실패
-                console.log("네이버 접근 토큰 검증 axios 실패");
-                next(retBody.fail.serverError);
-                return;
+            } catch(error) {
+                return next(retBody.fail.invalidAccessToken);
             }
-
             break;
-
 
         case 3:
             try {
@@ -167,22 +161,11 @@ router.post("/oauth", async function(req, res, next) {
                 name = asResponse.data.name;
 
             } catch(error) {
-
-                // 유효하지 않은 토큰일 때
-                if(error.response.data.error) {
-                    next(retBody.fail.invalidAccessToken);
-                    return;
-                }
-                
-                // axios 자체 실패
-                console.log("구글 접근 토큰 검증 axios 실패");
-                next(retBody.fail.serverError);
-                return;
+                return next(retBody.fail.invalidAccessToken);
             }
-
             break;
     }
-
+    
 
     try {
         currentUser = await db.user.findOne({ where : { email: email, type: type }, raw: true });
@@ -201,8 +184,7 @@ router.post("/oauth", async function(req, res, next) {
     } catch(error) {
         console.log("소셜 회원 DB 저장 오류");
         console.log(error);
-        next(retBody.fail.serverError);
-        return;
+        return next(retBody.fail.serverError);
     }
 
 
