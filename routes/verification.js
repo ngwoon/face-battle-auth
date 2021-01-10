@@ -101,12 +101,12 @@ router.post('/email', async function(req, res, next) {
         fail: {
             exceededExpiryDate: {
                 resultCode: "400",
-                resultMsg: "인증 코드 일치하지 않음",
+                resultMsg: "인증 코드 만료 기간이 지남",
                 item: {},
             },
             inconsistVerificationCode: {
                 resultCode: "400",
-                resultMsg: "인증 코드 만료 기간이 지남",
+                resultMsg: "인증 코드 일치하지 않음",
                 item: {},
             },
             serverError: {
