@@ -53,8 +53,7 @@ router.post("/code", async function(req, res, next) {
     } catch(error) {
         console.log("만료된 인증코드 삭제 오류");
         console.log(error);
-        next(retBody.fail.serverError);
-        return;
+        return next(retBody.fail.serverError);
     }
 
     try {
@@ -71,8 +70,7 @@ router.post("/code", async function(req, res, next) {
     } catch(error) {
         console.log("인증 코드 저장 실패");
         console.log(error);
-        next(retBody.fail.serverError);
-        return;
+        return next(retBody.fail.serverError);
     }
 
     try {
@@ -82,7 +80,6 @@ router.post("/code", async function(req, res, next) {
     } catch(error) {
         console.log("인증코드 이메일 전송 실패");
         console.log(error);
-
         next(retBody.fail.sendMailError);
 
         try {
@@ -131,8 +128,7 @@ router.post('/email', async function(req, res, next) {
     } catch(error) {
         console.log("DB 인증 코드 탐색 오류");
         console.log(error);
-        next(retBody.fail.serverError);
-        return;
+        return next(retBody.fail.serverError);
     }
 
 

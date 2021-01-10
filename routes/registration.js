@@ -35,12 +35,10 @@ router.post('/', async function(req, res, next) {
     const type = 0;
     const valid = 0;
 
-    if(!(email && password && name && birthDate && qid && answer)) {
-        next(retBody.fail.invalidParams);
-        return;
-    }
+    if(!(email && password && name && birthDate && qid && answer))
+        return next(retBody.fail.invalidParams);
 
-    console.log(`${email}, ${password}, ${name}, ${birthDate}, ${qid}, ${answer}`);
+    // console.log(`${email}, ${password}, ${name}, ${birthDate}, ${qid}, ${answer}`);
     
     // 패스워드 해싱
     const hashedPassword = crypto.createHash("sha256").update(password).digest("base64");
