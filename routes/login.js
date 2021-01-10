@@ -104,7 +104,7 @@ router.post("/oauth", async function(req, res, next) {
         },
     }
 
-    const urls = ["", "카카오 url", "https://openapi.naver.com/v1/nid/me", "https://www.googleapis.com/oauth2/v3/userinfo?access_token"]
+    const urls = ["", "https://kapi.kakao.com/v2/user/me", "https://openapi.naver.com/v1/nid/me", "https://www.googleapis.com/oauth2/v3/userinfo?access_token"]
 
     const accessToken = req.body.accessToken;
     const type = req.body.type;
@@ -122,9 +122,22 @@ router.post("/oauth", async function(req, res, next) {
 
     switch(type) {
         case 1:
-            
-            break;
+            try {
+                const asResponse = await axios({
+                    url: urls[type],
+                    method: "GET",
+                    headers: {
+                        "Authorization": `Bearer ${accessToken}`,
+                    }
+                });
 
+                email = asResponse.data.kakao_account.email;
+                name = asResponse.data.properties.nickname;
+
+            } catch(error) {
+                return next(retBody.fail.invalidAccessToken);
+            }
+            break;
             
         case 2:
             try {
@@ -139,10 +152,10 @@ router.post("/oauth", async function(req, res, next) {
                 email = asResponse.data.response.email;
                 name = asResponse.data.response.name;
 
-            } catch(asResponse) {
+            } catch(error) {
                 
                 // 유효하지 않은 접근 토큰 처리
-                if(asResponse.response.data) {
+                if(error.response.data) {
                     next(retBody.fail.invalidAccessToken);
                     return;
                 }
@@ -152,9 +165,7 @@ router.post("/oauth", async function(req, res, next) {
                 next(retBody.fail.serverError);
                 return;
             }
-
             break;
-
 
         case 3:
             try {
@@ -179,10 +190,9 @@ router.post("/oauth", async function(req, res, next) {
                 next(retBody.fail.serverError);
                 return;
             }
-
             break;
     }
-
+    
 
     try {
         currentUser = await db.user.findOne({ where : { email: email, type: type }, raw: true });
