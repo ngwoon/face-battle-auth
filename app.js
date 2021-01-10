@@ -7,7 +7,7 @@ const { sequelize } = require("./models");
 const jwt = require("./middlewares/jwt");
 const dotenv = require("dotenv");
 
-const indexRouter = require("./routes/index");
+// const indexRouter = require("./routes/index");
 const verRouter = require('./routes/verification');
 const regRouter = require('./routes/registration');
 const loginRouter = require('./routes/login');
@@ -48,8 +48,7 @@ app.use(cookieParser());
 /*
     routers
 */
-
-app.use("/", indexRouter);
+// app.use("/", indexRouter);
 app.use("/verification", verRouter);
 app.use("/registration", regRouter);
 app.use("/login", loginRouter);
