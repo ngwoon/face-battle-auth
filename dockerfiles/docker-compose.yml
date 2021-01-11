@@ -1,0 +1,14 @@
+version: "3"
+
+services:
+  face-battle:
+    image: ngwoon/face-battle-test
+    build:
+      context: ../
+      dockerfile: dockerfiles/Dockerfile
+    ports:
+      - "3000:3000"
+
+  db-server:
+    image: mysql:5.7
+    
