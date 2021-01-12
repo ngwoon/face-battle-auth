@@ -1,14 +1,40 @@
-version: "3"
+version: "3.7"
+
+networks:
+  face-battle-network:
+    name: "face-battle-network"
+    driver: bridge
 
 services:
   face-battle:
     image: ngwoon/face-battle-test
+    networks:
+      - "face-battle-network"
     build:
       context: ../
-      dockerfile: dockerfiles/Dockerfile
+      dockerfile: dockerfiles/API.Dockerfile
     ports:
-      - "3000:3000"
+      - 3000:3000
+    container_name: "face-battle"
+    depends_on:
+      - maria-database
 
-  db-server:
-    image: mysql:5.7
+
+  maria-database:
+    image: ngwoon/mariadb
+    networks:
+      - "face-battle-network"
+    build:
+      context: ../
+      dockerfile: dockerfiles/DB.Dockerfile
+    ports:
+      - 3306:3306
+    restart: always
+    container_name: "maria-database"
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MYSQL_DATABASE: face_battle
+      MYSQL_USER: root
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      TZ: Asia/Seoul
     

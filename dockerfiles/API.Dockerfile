@@ -1,5 +1,9 @@
 FROM node:12
 
+ENV DOCKERIZE_VERSION v0.2.0
+RUN wget https://github.com/jwilder/dockerize/releases/download/$DOCKERIZE_VERSION/dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz \  
+    && tar -C /usr/local/bin -xzvf dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz
+
 # 앱 디렉터리 생성
 WORKDIR /usr/src/app
 
@@ -17,6 +21,7 @@ COPY . ./
 
 ENV NODE_ENV=development
 
-EXPOSE 3000
+RUN chmod +x ./dockerfiles/api-docker-entrypoint.sh
+ENTRYPOINT ./dockerfiles/api-docker-entrypoint.sh
 
-CMD ["node", "bin/www", "&"]
+EXPOSE 3000
