@@ -1,11 +1,27 @@
+const dotenv = require("dotenv");
+const path = require('path');
+
+if(process.env.NODE_ENV === "development") {
+    console.log("NODE_ENV is development");
+    dotenv.config({ path: path.join(__dirname, "/env/development.env")});
+} else if(process.env.NODE_ENV === "production") {
+    console.log("NODE_ENV is production");
+    dotenv.config({ path: path.join(__dirname, "/env/production.env")});
+} else {
+    console.log("NODE_ENV를 찾을 수 없습니다.");
+    process.exit(1);
+}
+
+
+
+
 const createError = require('http-errors');
 const express = require('express');
-const path = require('path');
 const cookieParser = require('cookie-parser');
 const logger = require('morgan');
 const { sequelize } = require("./models");
 const jwt = require("./middlewares/jwt");
-const dotenv = require("dotenv");
+
 
 // const indexRouter = require("./routes/index");
 const verRouter = require('./routes/verification');
@@ -14,26 +30,19 @@ const loginRouter = require('./routes/login');
 const findRouter = require('./routes/find');
 const modRouter = require('./routes/modification');
 
-const app = express();
 
-// sequelize init
-sequelize.sync();
+
+const app = express();
 
 // view engine setup
 // app.set('views', path.join(__dirname, 'views'));
 // app.set('view engine', 'jade');
 // app.use(express.static(path.join(__dirname, 'public')));
 
-if(process.env.NODE_ENV === "development") {
-    console.log("NODE_ENV is development");
-    dotenv.config({ path: path.join(__dirname, "./env/development.env")});
-} else if(process.env.NODE_ENV === "production") {
-    console.log("NODE_ENV is production");
-    dotenv.config({ path: path.join(__dirname, "./env/production.env")});
-} else {
-    console.log("NODE_ENV를 찾을 수 없습니다.");
-    process.exit(1);
-}
+
+// sequelize init
+sequelize.sync();
+
 
 
 app.use(logger(process.env.LOGGER_MODE));
