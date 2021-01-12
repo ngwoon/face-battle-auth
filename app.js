@@ -13,8 +13,6 @@ if(process.env.NODE_ENV === "development") {
 }
 
 
-
-
 const createError = require('http-errors');
 const express = require('express');
 const cookieParser = require('cookie-parser');
@@ -30,19 +28,11 @@ const loginRouter = require('./routes/login');
 const findRouter = require('./routes/find');
 const modRouter = require('./routes/modification');
 
-
-
 const app = express();
-
-// view engine setup
-// app.set('views', path.join(__dirname, 'views'));
-// app.set('view engine', 'jade');
-// app.use(express.static(path.join(__dirname, 'public')));
 
 
 // sequelize init
 sequelize.sync();
-
 
 
 app.use(logger(process.env.LOGGER_MODE));
