@@ -1,6 +1,7 @@
 const jwt = require("jsonwebtoken");
 
 const EXPIRE_TERM = 10;
+const SECRET = process.env.JWT_SECRET;
 
 module.exports = {
     createJWT: (email, name, type, expiresIn = EXPIRE_TERM) => {
@@ -9,7 +10,7 @@ module.exports = {
             name,
             type,
         };
-        const secret = process.env.JWT_SECRET;
+        const secret = SECRET;
         const options = {
             expiresIn,
         };
