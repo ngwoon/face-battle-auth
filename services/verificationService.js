@@ -26,7 +26,7 @@ module.exports = {
         
         // 회원, 해당 회원의 인증 코드 조회
         try {
-            currentUser = await db.user.findOne({ where: { email, type } });
+            currentUser = await db.user.findOne({ where: { email, type }, raw: true });
         } catch(error) {
             throw new DBError("회원 조회 오류", error);
         }
@@ -51,13 +51,17 @@ module.exports = {
                 if(verificationCodeRow.expiry_date >= currentDate) {
                     try {
                         await db.sequelize.transaction(async (t) => {
-                            await db.user.update({ valid: 1 }, { where : { uid: verificationCodeRow.uid }, transaction: t});
+                            await db.user.update({ valid: 1 }, { where : { uid: currentUser.uid }, transaction: t });
                             await db.verification_code.destroy({ where: { code: code }, transaction: t});
                         });
-        
+
+                        currentUser.valid = 1;
+                        delete currentUser.password;
+
                         // JWT 토큰 생성, 반환
                         createdJWT = jwt.createJWT(email, currentUser.name, type);
-                        return createdJWT;
+
+                        return { jwt: createdJWT, userInfo: currentUser };
         
                     } catch(error) {
                         throw new DBError("회원 활성화, 검증된 인증 코드 폐기 오류", error);
