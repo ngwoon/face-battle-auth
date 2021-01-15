@@ -74,6 +74,16 @@ class SendEmailError extends Error {
         this.message = "인증코드 이메일 전송 실패";
     }
 }
+class AlreadyValidUserError extends Error {
+    constructor(...params) {
+        super(...params);
+
+        if (Error.captureStackTrace)
+            Error.captureStackTrace(this, AlreadyValidUserError);
+
+        this.message = "이미 활성화된 회원";
+    }
+}
 
 
 /*
@@ -93,6 +103,8 @@ class DuplicatedEmailError extends Error {
 
 /*
     authService - normalLogin Errors
+
+    NotExistUserError also used in verificationService - sendVerificationEmail
 */
 class NotExistUserError extends Error {
     constructor(...params) {
@@ -132,6 +144,7 @@ module.exports = {
     InconsistVerificationCodeError,
 
     SendEmailError,
+    AlreadyValidUserError,
     
     DuplicatedEmailError,
 
