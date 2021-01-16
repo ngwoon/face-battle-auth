@@ -106,3 +106,6 @@ dist
 # .env files
 env/
 dockerfiles/.env
+
+# TODO list for dev
+.todos
