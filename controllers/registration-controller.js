@@ -1,5 +1,5 @@
-const { InvalidParamsError, DBError, DuplicatedEmailError, } = require("../errors");
-const registrationService = require("../services/registrationService");
+const { InvalidParamsError, MissingRequiredParamsError, DBError, DuplicatedEmailError, } = require("../utils/errors");
+const registrationService = require("../services/registration-service");
 
 module.exports = {
     async registrateUser(req, res, next) {
@@ -12,7 +12,12 @@ module.exports = {
             fail: {
                 invalidParams: {
                     resultCode: "400",
-                    resultMsg: "필수 파라미터 존재하지 않음",
+                    resultMsg: "유효하지 않은 매개변수",
+                    item: {},
+                },
+                missingRequiredParams: {
+                    resultCode: "400",
+                    resultMsg: "필수 파라미터 누락",
                     item: {},
                 },
                 serverError: {
@@ -29,17 +34,19 @@ module.exports = {
         const birthDate = req.body.birthDate;
         const qid = req.body.qid;
         const answer = req.body.answer;
-        const type = 0;
-        const valid = 0;
     
         try {
-            await registrationService.registrateUser(email, password, name, birthDate, qid, answer, type, valid);
+            await registrationService.registrateUser(email, password, name, birthDate, qid, answer);
             res.status(201).json(retBody.success);
         } catch(error) {
             console.log(error);
             
             if(error instanceof InvalidParamsError)
                 res.status(400).json(retBody.fail.invalidParams);
+
+            if(error instanceof MissingRequiredParamsError)
+                res.status(400).json(retBody.fail.missingRequiredParams);
+            
             else if(error instanceof DBError)
                 res.status(500).json(retBody.fail.serverError);
         }
@@ -54,6 +61,11 @@ module.exports = {
             },
             fail: {
                 invalidParams: {
+                    resultCode: "400",
+                    resultMsg: "유효하지 않은 매개변수",
+                    item: {},
+                },
+                missingRequiredParams: {
                     resultCode: "400",
                     resultMsg: "필수 파라미터 누락",
                     item: {},
@@ -81,6 +93,9 @@ module.exports = {
 
             if(error instanceof InvalidParamsError)
                 res.status(400).json(retBody.fail.invalidParams);
+
+            if(error instanceof MissingRequiredParamsError)
+                res.status(400).json(retBody.fail.missingRequiredParams);
 
             else if(error instanceof DuplicatedEmailError)
                 res.status(404).json(retBody.fail.duplicatedEmailExists);

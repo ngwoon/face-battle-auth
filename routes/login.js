@@ -4,7 +4,7 @@ const axios = require("axios");
 
 const db = require("../models");
 const jwt = require("../modules/jwt");
-const authController = require("../controllers/authController");
+const authController = require("../controllers/auth-controller");
 const router = express.Router();
 
 router.post('/normal', authController.normalLogIn);

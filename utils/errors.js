@@ -2,6 +2,16 @@
 /*
     Common Errors
 */
+class MissingRequiredParamsError extends Error {
+    constructor(...params) {
+        super(...params);
+
+        if (Error.captureStackTrace)
+            Error.captureStackTrace(this, MissingRequiredParamsError);
+
+        this.message = "필수 파라미터 누락";
+    }
+}
 class InvalidParamsError extends Error {
     constructor(...params) {
         super(...params);
@@ -9,7 +19,7 @@ class InvalidParamsError extends Error {
         if (Error.captureStackTrace)
             Error.captureStackTrace(this, InvalidParamsError);
 
-        this.message = "필수 파라미터 누락";
+        this.message = "유효하지 않은 매개변수";
     }
 }
 class DBError extends Error {
@@ -137,6 +147,7 @@ class InvalidAccessTokenError extends Error {
 
 module.exports = {
     InvalidParamsError,
+    MissingRequiredParamsError,
     DBError,
 
     ExceededExpiryDateError,

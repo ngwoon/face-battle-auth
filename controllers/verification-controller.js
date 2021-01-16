@@ -1,5 +1,5 @@
-const { InvalidParamsError, DBError, ExceededExpiryDateError, NoVerificationCodeError, InconsistVerificationCodeError, SendEmailError, AlreadyValidUserError, NotExistUserError } = require("../errors");
-const verificationService = require("../services/verificationService");
+const { InvalidParamsError, MissingRequiredParamsError, DBError, ExceededExpiryDateError, NoVerificationCodeError, InconsistVerificationCodeError, SendEmailError, AlreadyValidUserError, NotExistUserError } = require("../utils/errors");
+const verificationService = require("../services/verification-service");
 
 module.exports = {
     async sendVerificationEmail(req, res, next) {
@@ -12,17 +12,22 @@ module.exports = {
             fail: {
                 invalidParams: {
                     resultCode: "400",
+                    resultMsg: "유효하지 않은 매개변수",
+                    item: {},
+                },
+                missingRequiredParams: {
+                    resultCode: "400",
                     resultMsg: "필수 파라미터 누락",
                     item: {},
                 },
-                alreadyValidUser: {
-                    resultCode: "400",
-                    resultMsg: "이미 활성화된 회원",
+                notExistUser: {
+                    resultCode: "403",
+                    resultMsg: "존재하지 않는 회원",
                     item: {},
                 },
-                notExistUser: {
-                    resultCode: "400",
-                    resultMsg: "존재하지 않는 회원",
+                alreadyValidUser: {
+                    resultCode: "403",
+                    resultMsg: "이미 활성화된 회원",
                     item: {},
                 },
                 cannotSendEmail: {
@@ -48,12 +53,15 @@ module.exports = {
 
             if(error instanceof InvalidParamsError)
                 res.status(400).json(retBody.fail.invalidParams);
+            
+            else if(error instanceof MissingRequiredParamsError)
+                res.status(400).json(retBody.fail.missingRequiredParams);
 
             else if(error instanceof AlreadyValidUserError)
-                res.status(400).json(retBody.fail.alreadyValidUser);
+                res.status(403).json(retBody.fail.alreadyValidUser);
 
             else if(error instanceof NotExistUserError)
-                res.status(400).json(retBody.fail.notExistUser);
+                res.status(403).json(retBody.fail.notExistUser);
 
             else if(error instanceof SendEmailError)
                 res.status(500).json(retBody.fail.cannotSendEmail);
@@ -73,17 +81,12 @@ module.exports = {
             fail: {
                 invalidParams: {
                     resultCode: "400",
+                    resultMsg: "유효하지 않은 매개변수",
+                    item: {},
+                },
+                missingRequiredParams: {
+                    resultCode: "400",
                     resultMsg: "필수 파라미터 누락",
-                    item: {},
-                },
-                notExistUser: {
-                    resultCode: "400",
-                    resultMsg: "존재하지 않는 회원",
-                    item: {},
-                },
-                exceededExpiryDate: {
-                    resultCode: "400",
-                    resultMsg: "인증 코드 만료 기간이 지남",
                     item: {},
                 },
                 inconsistVerificationCode: {
@@ -91,8 +94,23 @@ module.exports = {
                     resultMsg: "인증 코드 일치하지 않음",
                     item: {},
                 },
+                exceededExpiryDate: {
+                    resultCode: "401",
+                    resultMsg: "인증 코드 만료 기간이 지남",
+                    item: {},
+                },
+                notExistUser: {
+                    resultCode: "403",
+                    resultMsg: "존재하지 않는 회원",
+                    item: {},
+                },
+                alreadyValidUser: {
+                    resultCode: "403",
+                    resultMsg: "이미 활성화된 회원",
+                    item: {},
+                },
                 noVerificationCode: {
-                    resultCode: "400",
+                    resultCode: "403",
                     resultMsg: "인증 코드를 발급받지 않음",
                     item: {},
                 },
@@ -108,25 +126,32 @@ module.exports = {
         const email = req.body.email;
         
         try {
-            await verificationService.verifyEmail(email, code);
+            const item = await verificationService.verifyEmail(email, code);
+            retBody.success.item = item;
             res.status(200).json(retBody.success);
         } catch(error) {
             console.log(error);
 
             if(error instanceof InvalidParamsError)
-                res.status(400).json(retBody.fail.InvalidParamsError);
+                res.status(400).json(retBody.fail.InvalidParams);
 
-            else if(error instanceof NotExistUserError)
-                res.status(400).json(retBody.fail.notExistUser);
-
-            else if(error instanceof ExceededExpiryDateError)
-                res.status(400).json(retBody.fail.exceededExpiryDate);
+            if(error instanceof MissingRequiredParamsError)
+                res.status(400).json(retBody.fail.missingRequiredParams);
 
             else if(error instanceof InconsistVerificationCodeError)
                 res.status(400).json(retBody.fail.inconsistVerificationCode);
+            
+            else if(error instanceof ExceededExpiryDateError)
+                res.status(401).json(retBody.fail.exceededExpiryDate);
+            
+            else if(error instanceof NotExistUserError)
+                res.status(403).json(retBody.fail.notExistUser);
+            
+            else if(error instanceof AlreadyValidUserError)
+                res.status(403).json(retBody.fail.alreadyValidUser);
 
             else if(error instanceof NoVerificationCodeError)
-                res.status(400).json(retBody.fail.noVerificationCode);
+                res.status(403).json(retBody.fail.noVerificationCode);
 
             else if(error instanceof DBError)
                 res.status(500).json(retBody.fail.serverError);

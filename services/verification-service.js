@@ -1,8 +1,9 @@
+const { InvalidParamsError, DBError, ExceededExpiryDateError, InconsistVerificationCodeError, SendEmailError, NoVerificationCodeError, NotExistUserError, AlreadyValidUserError, MissingRequiredParamsError } = require("../utils/errors");
+const { verifyParams } = require("../modules/verify-params");
 const nodemailer = require("nodemailer");
 const crypto = require("crypto");
 const db = require("../models");
 const jwt = require("../modules/jwt");
-const { InvalidParamsError, DBError, ExceededExpiryDateError, InconsistVerificationCodeError, SendEmailError, NoVerificationCodeError, NotExistUserError, AlreadyValidUserError } = require("../errors");
 
 
 const VERIFICATION_EXPIRY_PERIOD = 300;
@@ -18,7 +19,12 @@ const MAIL_CONTENT = "Face Battle 앱에 회원이 된 것을 축하드립니다
 module.exports = {
     async verifyEmail(email, code) {
 
-        if(!(email && code))
+        const verifyResult = verifyParams({email, code});
+
+        if(verifyResult.isParamMissed)
+            throw new MissingRequiredParamsError();
+        
+        if(verifyResult.isParamInvalid)
             throw new InvalidParamsError();
 
         let currentUser, verificationCodeRow;
@@ -31,9 +37,13 @@ module.exports = {
             throw new DBError("회원 조회 오류", error);
         }
 
-        // 존재하지 않는 회원일 경우
+        // 존재하지 않는 회원이 이메일 검증 요청을 한 경우
         if(!currentUser)
             throw new NotExistUserError();
+
+        // 이미 인증한 회원이 이메일 검증 요청을 한 경우
+        if(currentUser.valid)
+            throw new AlreadyValidUserError();
         
         try {
             verificationCodeRow = await db.verification_code.findOne({ where: { uid: currentUser.uid } });
@@ -83,8 +93,13 @@ module.exports = {
     },
 
     async sendVerificationEmail(email) {
+
+        const verifyResult = verifyParams({email});
+
+        if(verifyResult.isParamMissed)
+            throw new MissingRequiredParamsError();
         
-        if(!email)
+        if(verifyResult.isParamInvalid)
             throw new InvalidParamsError();
         
         // 현재 요청을 보낸 클라이언트 정보

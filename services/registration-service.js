@@ -1,15 +1,23 @@
-const db = require("../models");
+const { InvalidParamsError, DBError, DuplicatedEmailError, MissingRequiredParamsError } = require("../utils/errors");
+const { verifyParams } = require("../modules/verify-params");
 const crypto = require("crypto");
-const { InvalidParamsError, DBError, DuplicatedEmailError } = require("../errors");
+const db = require("../models");
 
 module.exports = {
-    async registrateUser(email, password, name, birthDate, qid, answer, type, valid) {
+    async registrateUser(email, password, name, birthDate, qid, answer) {
 
-        if(!(email && password && name && birthDate && qid && answer))
+        const verifyResult = verifyParams({email, password, name, birthDate, qid, answer});
+
+        if(verifyResult.isParamMissed)
+            throw new MissingRequiredParamsError();
+        
+        if(verifyResult.isParamInvalid)
             throw new InvalidParamsError();
 
         // 패스워드 해싱
         const hashedPassword = crypto.createHash("sha256").update(password).digest("base64");
+        const type = 0;
+        const valid = 0;
         let user;
 
         try {
@@ -37,6 +45,14 @@ module.exports = {
 
     async checkEmailDuplication(email) {
 
+        const verifyResult = verifyParams({email});
+
+        if(verifyResult.isParamMissed)
+            throw new MissingRequiredParamsError();
+        
+        if(verifyResult.isParamInvalid)
+            throw new InvalidParamsError();
+        
         const type = 0;
         let duplicatedUser;
 

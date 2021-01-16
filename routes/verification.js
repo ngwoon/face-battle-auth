@@ -1,5 +1,5 @@
 const express = require('express');
-const verificationController = require("../controllers/verificationController");
+const verificationController = require("../controllers/verification-controller");
 const router = express.Router();
 
 // 인증 코드 생성, 발송

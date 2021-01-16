@@ -1,5 +1,6 @@
 
-const { InvalidParamsError, DBError, InvalidAccessTokenError, NotExistUserError } = require("../errors");
+const { InvalidParamsError, MissingRequiredParamsError, DBError, InvalidAccessTokenError, NotExistUserError } = require("../utils/errors");
+const { verifyParams } = require("../modules/verify-params");
 const db = require("../models");
 const jwt = require("../modules/jwt");
 const crypto = require("crypto");
@@ -8,8 +9,12 @@ const axios = require("axios");
 module.exports = {
     async normalLogIn(email, password) {
 
-        // 클라이언트가 필수 파라미터를 충족시키지 않았을 경우
-        if(!(email && password))
+        const verifyResult = verifyParams({email, password});
+
+        if(verifyResult.isParamMissed)
+            throw new MissingRequiredParamsError();
+        
+        if(verifyResult.isParamInvalid)
             throw new InvalidParamsError();
     
         const type = 0;
@@ -47,17 +52,19 @@ module.exports = {
     },
 
     async socialLogIn(accessToken, type, expiresIn) {
-        
-        const urls = ["", "https://kapi.kakao.com/v2/user/me", "https://openapi.naver.com/v1/nid/me", "https://www.googleapis.com/oauth2/v3/userinfo?access_token"];
-        const item = {};
-        let email, name, currentUser;
     
         // 필수 파라미터 확인
         if(!(accessToken && type && expiresIn))
+            throw new MissingRequiredParamsError();
+
+        // 유효하지 않은 type인 경우
+        if(!(type >= 1 && type <= 3))
             throw new InvalidParamsError();
 
+        const urls = ["", "https://kapi.kakao.com/v2/user/me", "https://openapi.naver.com/v1/nid/me", "https://www.googleapis.com/oauth2/v3/userinfo?access_token"];
+        const item = {};
+        let email, name, currentUser;
 
-        console.log(accessToken, type, expiresIn);
 
         // 접근 토큰 검증
         try {
@@ -99,6 +106,8 @@ module.exports = {
                 email = axiosResponse.data.email;
                 name = axiosResponse.data.name;
             }
+
+            
         } catch(error) {
             throw new InvalidAccessTokenError(error);
         }
@@ -137,5 +146,4 @@ module.exports = {
         
         return item;
     },
-
 }
