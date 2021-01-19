@@ -141,6 +141,16 @@ class NotExistUserError extends Error {
         this.message = "존재하지 않는 회원";
     }
 }
+class NotValidUserError extends Error {
+    constructor(...params) {
+        super(...params);
+
+        if (Error.captureStackTrace)
+            Error.captureStackTrace(this, NotValidUserError);
+
+        this.message = "인증되지 않은 회원";
+    }
+}
 
 
 /*
@@ -154,6 +164,16 @@ class InvalidAccessTokenError extends Error {
             Error.captureStackTrace(this, InvalidAccessTokenError);
 
         this.message = "유효하지 않은 접근 토큰";
+    }
+}
+class AxiosError extends Error {
+    constructor(...params) {
+        super(...params);
+
+        if (Error.captureStackTrace)
+            Error.captureStackTrace(this, AxiosError);
+
+        this.message = "소셜 플랫폼 비동기 통신 오류";
     }
 }
 
@@ -177,6 +197,8 @@ module.exports = {
     AlreadyExistUserError,
 
     NotExistUserError,
+    NotValidUserError,
 
     InvalidAccessTokenError,
+    AxiosError,
 };

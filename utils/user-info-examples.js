@@ -14,6 +14,8 @@ module.exports = {
     TEST_QID                            : 2,
     TEST_ANSWER                         : "테스트 답변",
     TEST_CID                            : 1,
+    TEST_ACCESS_TOKEN                   : "TESTACCESSTOKEN",
+    TEST_EXPIRES_IN                     : 7199,
     
     TEST_VERIFICATION_CODE              : "AbD+=/",
     DIFF_VERIFICATION_CODE              : "cdE=fa",

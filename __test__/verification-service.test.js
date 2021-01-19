@@ -35,6 +35,8 @@ const db = require("../models");
 const verificationService = require("../services/verification-service");
 const nodemailer = require("nodemailer");
 
+jest.mock("nodemailer");
+
 let TEST_EXPIRY_DATE,
     VALID_EXPIRY_DATE,
     PASSED_EXPIRY_DATE;
@@ -108,7 +110,6 @@ describe("services/verification-service.js", () => {
             });
         
             // nodemailer의 sendMail 함수 mock
-            jest.mock("nodemailer");
             nodemailer.createTransport = jest.fn().mockImplementation(() => {
                 return {
                     sendMail() {

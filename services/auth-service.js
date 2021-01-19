@@ -5,6 +5,8 @@ const {
     DBError, 
     InvalidAccessTokenError, 
     NotExistUserError,
+    NotValidUserError,
+    AxiosError,
 } = require("../utils/errors");
 
 const { 
@@ -48,6 +50,10 @@ module.exports = {
         }
         
         if(currentUser) {
+
+            if(!currentUser.valid)
+                throw new NotValidUserError;
+
             // JWT 토큰 생성
             const createdJWT = jwt.createJWT(email, currentUser.name, type);
 
@@ -82,9 +88,8 @@ module.exports = {
         try {
             // Kakao
             if(type === 1) {
-                const axiosResponse = await axios({
+                const axiosResponse = await axios.get({
                     url: urls[type],
-                    method: "GET",
                     headers: {
                         "Authorization": `Bearer ${accessToken}`,
                     }
@@ -96,9 +101,8 @@ module.exports = {
 
             // Naver
             else if(type === 2) {
-                const axiosResponse = await axios({
+                const axiosResponse = await axios.get({
                     url: urls[type],
-                    method: "GET",
                     headers: {
                         "Authorization": `Bearer ${accessToken}`
                     }
@@ -110,18 +114,19 @@ module.exports = {
 
             // Google
             else if(type === 3) {
-                const axiosResponse = await axios({
+                const axiosResponse = await axios.get({
                     url: `${urls[type]}=${accessToken}`,
-                    method: "get",
                 });
 
                 email = axiosResponse.data.email;
                 name = axiosResponse.data.name;
             }
 
-            
         } catch(error) {
-            throw new InvalidAccessTokenError(error);
+            if(error.response)
+                throw new InvalidAccessTokenError(error);
+            else
+                throw new AxiosError(error);
         }
 
         

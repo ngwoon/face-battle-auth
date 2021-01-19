@@ -1,4 +1,11 @@
-const { InvalidParamsError, MissingRequiredParamsError, DBError, DuplicatedEmailError, AlreadyExistUserError, } = require("../utils/errors");
+const { 
+    InvalidParamsError, 
+    MissingRequiredParamsError, 
+    DBError, 
+    DuplicatedEmailError, 
+    AlreadyExistUserError, 
+} = require("../utils/errors");
+
 const registrationService = require("../services/registration-service");
 
 module.exports = {

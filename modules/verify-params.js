@@ -4,9 +4,6 @@ module.exports = {
     verifyParams({...params}) {
         const keys = Object.keys(params);
         const values = Object.values(params);
-
-        console.log(keys);
-        console.log(values);
     
         const result = {
             isParamMissed: false,

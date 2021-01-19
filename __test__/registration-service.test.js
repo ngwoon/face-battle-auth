@@ -45,7 +45,7 @@ describe("services/registration-service.js", () => {
         test("DuplicatedEmailError test", async () => {
             db.user.findOne = jest.fn().mockResolvedValue({
                 uid: TEST_UID, 
-                email: "todory2002@naver.com", 
+                email: TEST_EMAIL, 
                 password: TEST_PASSWORD, 
                 name: TEST_NAME, 
                 birth_date: TEST_BIRTH_DATE,
@@ -57,14 +57,16 @@ describe("services/registration-service.js", () => {
             .rejects.toThrow(DuplicatedEmailError);
         });
 
-        test("DBError test", async () => {  
-            // 이메일 조회 오류
-            db.user.findOne = jest.fn().mockImplementation(() => {
-                throw new Error();
+        describe("DBError test", () => {
+            test("Find user test", async () => {  
+                // 이메일 조회 오류
+                db.user.findOne = jest.fn().mockImplementation(() => {
+                    throw new Error();
+                });
+    
+                await expect(registrationService.checkEmailDuplication(TEST_EMAIL))
+                .rejects.toThrow(expect.objectContaining({ message: DB_USER_FIND_ERR_MSG }));
             });
-
-            await expect(registrationService.checkEmailDuplication(TEST_EMAIL))
-            .rejects.toThrow(expect.objectContaining({ message: DB_USER_FIND_ERR_MSG }));
         });
     });
 

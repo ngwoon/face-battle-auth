@@ -1,4 +1,15 @@
-const { InvalidParamsError, MissingRequiredParamsError, DBError, ExceededExpiryDateError, NoVerificationCodeError, InconsistVerificationCodeError, SendEmailError, AlreadyValidUserError, NotExistUserError } = require("../utils/errors");
+const { 
+    InvalidParamsError,
+    MissingRequiredParamsError,
+    DBError,
+    ExceededExpiryDateError,
+    NoVerificationCodeError,
+    InconsistVerificationCodeError,
+    SendEmailError,
+    AlreadyValidUserError,
+    NotExistUserError,
+} = require("../utils/errors");
+
 const verificationService = require("../services/verification-service");
 
 module.exports = {

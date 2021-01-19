@@ -1,5 +1,12 @@
+const { 
+    InvalidParamsError, 
+    MissingRequiredParamsError, 
+    DBError, 
+    NotExistUserError, 
+    InvalidAccessTokenError, 
+    AxiosError,
+} = require("../utils/errors");
 
-const { InvalidParamsError, MissingRequiredParamsError, DBError, NotExistUserError, InvalidAccessTokenError } = require("../utils/errors");
 const authService = require("../services/auth-service");
 
 module.exports = {
@@ -21,7 +28,12 @@ module.exports = {
                     resultMsg: "필수 파라미터 누락",
                     item: {},
                 },
-                inconsistentUserInfo: {
+                notValidUser: {
+                    resultCode: "403",
+                    resultMsg: "인증되지 않은 회원",
+                    item: {},
+                },
+                notExistUser: {
                     resultCode: "404",
                     resultMsg: "일치하는 회원 없음",
                     item: {},
@@ -50,8 +62,11 @@ module.exports = {
             else if(error instanceof MissingRequiredParamsError)
                 res.status(400).json(retBody.fail.missingRequiredParams);
             
+            else if(error instanceof NotValidUserError)
+                res.status(403).json(retBody.fail.notValidUser);
+
             else if(error instanceof NotExistUserError)
-                res.status(404).json(retBody.fail.inconsistentUserInfo);
+                res.status(404).json(retBody.fail.notExistUser);
             
             else if(error instanceof DBError)
                 res.status(500).json(retBody.fail.serverError);
@@ -110,6 +125,9 @@ module.exports = {
             else if(error instanceof InvalidAccessTokenError)
                 res.status(401).json(retBody.fail.invalidAccessToken);
  
+            else if(error instanceof AxiosError)
+                res.status(500).json(retBody.fail.serverError);
+
             else if(error instanceof DBError)
                 res.status(500).json(retBody.fail.serverError);
         }
