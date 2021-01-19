@@ -1,4 +1,23 @@
-const { InvalidParamsError, DBError, ExceededExpiryDateError, InconsistVerificationCodeError, SendEmailError, NoVerificationCodeError, NotExistUserError, AlreadyValidUserError, MissingRequiredParamsError } = require("../utils/errors");
+const { 
+    InvalidParamsError, 
+    DBError, 
+    ExceededExpiryDateError, 
+    InconsistVerificationCodeError, 
+    SendEmailError, 
+    NoVerificationCodeError, 
+    NotExistUserError, 
+    AlreadyValidUserError, 
+    MissingRequiredParamsError 
+} = require("../utils/errors");
+
+const { 
+    DB_USER_FIND_ERR_MSG, 
+    DB_VERIFICATION_CODE_FIND_MSG, 
+    DB_USER_UPDATE_ERR_MSG, 
+    DB_VERIFICATION_CODE_DELETE_MSG, 
+    DB_VERIFICATION_CODE_CREATE_MSG 
+} = require("../utils/error-messages");
+
 const { verifyParams } = require("../modules/verify-params");
 const nodemailer = require("nodemailer");
 const crypto = require("crypto");
@@ -34,7 +53,7 @@ module.exports = {
         try {
             currentUser = await db.user.findOne({ where: { email, type }, raw: true });
         } catch(error) {
-            throw new DBError("회원 조회 오류", error);
+            throw new DBError(DB_USER_FIND_ERR_MSG, error);
         }
 
         // 존재하지 않는 회원이 이메일 검증 요청을 한 경우
@@ -48,7 +67,7 @@ module.exports = {
         try {
             verificationCodeRow = await db.verification_code.findOne({ where: { uid: currentUser.uid } });
         } catch(error) {
-            throw new DBError("인증 코드 조회 오류", error);
+            throw new DBError(DB_VERIFICATION_CODE_FIND_MSG, error);
         }
         
         if(verificationCodeRow) {
@@ -74,7 +93,7 @@ module.exports = {
                         return { jwt: createdJWT, userInfo: currentUser };
         
                     } catch(error) {
-                        throw new DBError("회원 활성화, 검증된 인증 코드 폐기 오류", error);
+                        throw new DBError(`${DB_USER_UPDATE_ERR_MSG}\n${DB_VERIFICATION_CODE_DELETE_MSG}`, error);
                     }
                 }
                 // 만료 기간이 지난 경우
@@ -111,12 +130,12 @@ module.exports = {
         // 클라이언트 유형, uid
         const type = 0;
         let uid;
+        let verificationCodeRow;
     
         try {
-            // 현재 회원이 이전에 요청한 인증코드 있는지 확인
             currentUser = await db.user.findOne({ where: { email, type } });
         } catch(error) {
-            throw new DBError("인증 코드 관련 DB 오류", error);
+            throw new DBError(DB_USER_FIND_ERR_MSG, error);
         }
 
         // 등록되지 않은 회원이 이메일 발송 요청을 한 경우
@@ -127,15 +146,20 @@ module.exports = {
         if(currentUser.valid)
             throw new AlreadyValidUserError();
         
+        // 이전에 발급받은 인증 코드가 있는지 확인
         uid = currentUser.uid;
-        const verificationCodeRow = await db.verification_code.findOne({ where: { uid } });
+        try {
+            verificationCodeRow = await db.verification_code.findOne({ where: { uid } });
+        } catch(error) {
+            throw new DBError(DB_VERIFICATION_CODE_FIND_MSG, error);
+        }
         
         // 새로운 인증코드 발급을 위해 해당 인증코드 삭제
         if(verificationCodeRow) {
             try {
                 await db.verification_code.destroy({ where: { uid } });
             } catch(error) {
-                throw new DBError("이전 인증코드 삭제 오류", error);
+                throw new DBError(DB_VERIFICATION_CODE_DELETE_MSG, error);
             }
         }
         
@@ -153,37 +177,14 @@ module.exports = {
                 expiry_date: Date.now()/1000 + VERIFICATION_EXPIRY_PERIOD,
             }, { raw: true });
         } catch(error) {
-            throw new DBError("인증 코드 저장 오류", error);
+            throw new DBError(DB_VERIFICATION_CODE_CREATE_MSG, error);
         }
 
 
 
         try {
             // 인증 메일 발송
-            await new Promise((resolve, reject) => {
-
-                const mail = nodemailer.createTransport({
-                    service: "gmail",
-                    auth: {
-                        user: ADMIN_MAIL_ADDRESS,
-                        pass: ADMIN_MAIL_PASSWORD,
-                    },
-                });
-        
-                const mailOptions = {
-                    from: ADMIN_MAIL_ADDRESS,
-                    to: email,
-                    subject: MAIL_SUBJECT,
-                    html: MAIL_CONTENT + verificationCode + "</h2>",
-                };
-
-                mail.sendMail(mailOptions, (error, info) => {
-                    if(error)
-                        reject(error);
-                    else
-                        resolve(info);
-                });
-            });
+            await this.sendMail(email, verificationCode);
         } catch(error) {
             let isEmailError = true;
 
@@ -191,13 +192,39 @@ module.exports = {
                 await db.verification_code.destroy({ where: { uid } });
             } catch(error) {
                 isEmailError = false;
-                throw new DBError("새로 생성한 인증코드 삭제 오류", error);
+                throw new DBError(DB_VERIFICATION_CODE_DELETE_MSG, error);
             }
 
             if(isEmailError)
                 throw new SendEmailError(error.error);
             else
-                throw new DBError("새로 생성한 인증코드 삭제 오류", error);
+                throw new DBError(error.message, error);
         }
+    },
+
+    sendMail(email, verificationCode) {
+        return new Promise((resolve, reject) => {
+            const mail = nodemailer.createTransport({
+                service: "gmail",
+                auth: {
+                    user: ADMIN_MAIL_ADDRESS,
+                    pass: ADMIN_MAIL_PASSWORD,
+                },
+            });
+    
+            const mailOptions = {
+                from: ADMIN_MAIL_ADDRESS,
+                to: email,
+                subject: MAIL_SUBJECT,
+                html: MAIL_CONTENT + verificationCode + "</h2>",
+            };
+    
+            mail.sendMail(mailOptions, (error, info) => {
+                if(error)
+                    reject(error);
+                else
+                    resolve(info);
+            });
+        });  
     },
 }

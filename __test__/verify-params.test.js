@@ -39,7 +39,7 @@ const {
     LESS_THAN_6_LEN_VERIFICATION_CODE,
     GREATER_THAN_6_LEN_VERIFICATION_CODE,
     IMP_SPECIAL_VERIFICATION_CODE,
-} = require("../utils/user-info-example");
+} = require("../utils/user-info-examples");
 const { verifyParams } = require("../modules/verify-params");
 
 

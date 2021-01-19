@@ -1,4 +1,4 @@
-const { InvalidParamsError, MissingRequiredParamsError, DBError, DuplicatedEmailError, } = require("../utils/errors");
+const { InvalidParamsError, MissingRequiredParamsError, DBError, DuplicatedEmailError, AlreadyExistUserError, } = require("../utils/errors");
 const registrationService = require("../services/registration-service");
 
 module.exports = {
@@ -18,6 +18,11 @@ module.exports = {
                 missingRequiredParams: {
                     resultCode: "400",
                     resultMsg: "필수 파라미터 누락",
+                    item: {},
+                },
+                alreadyExistUser: {
+                    resultCode: "403",
+                    resultMsg: "이미 존재하는 회원",
                     item: {},
                 },
                 serverError: {
@@ -44,9 +49,12 @@ module.exports = {
             if(error instanceof InvalidParamsError)
                 res.status(400).json(retBody.fail.invalidParams);
 
-            if(error instanceof MissingRequiredParamsError)
+            else if(error instanceof MissingRequiredParamsError)
                 res.status(400).json(retBody.fail.missingRequiredParams);
             
+            else if(error instanceof AlreadyExistUserError)
+                res.status(400).json(retBody.fail.alreadyExistUser);
+
             else if(error instanceof DBError)
                 res.status(500).json(retBody.fail.serverError);
         }

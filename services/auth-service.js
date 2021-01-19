@@ -1,5 +1,17 @@
 
-const { InvalidParamsError, MissingRequiredParamsError, DBError, InvalidAccessTokenError, NotExistUserError } = require("../utils/errors");
+const { 
+    InvalidParamsError, 
+    MissingRequiredParamsError, 
+    DBError, 
+    InvalidAccessTokenError, 
+    NotExistUserError,
+} = require("../utils/errors");
+
+const { 
+    DB_USER_FIND_ERR_MSG, 
+    DB_USER_CREATE_ERR_MSG,
+} = require("../utils/error-messages");
+
 const { verifyParams } = require("../modules/verify-params");
 const db = require("../models");
 const jwt = require("../modules/jwt");
@@ -32,7 +44,7 @@ module.exports = {
                 raw: true,
             });
         } catch(error) {
-            throw new DBError("일반 로그인 DB 조회 오류", error);
+            throw new DBError(DB_USER_FIND_ERR_MSG, error);
         }
         
         if(currentUser) {
@@ -117,8 +129,12 @@ module.exports = {
         // 등록되어 있지 않다면 등록
         try {
             currentUser = await db.user.findOne({ where : { email: email, type: type }, raw: true });
-            
-            if(!currentUser) {
+        } catch(error) {
+            throw new DBError(DB_USER_FIND_ERR_MSG);
+        }
+
+        if(!currentUser) {
+            try {
                 currentUser = await db.user.create({
                     email,
                     password: null,
@@ -127,10 +143,9 @@ module.exports = {
                     type,
                     valid: 1,
                 }, { raw: true });
+            } catch(error) {
+                throw new DBError(DB_USER_CREATE_ERR_MSG);
             }
-    
-        } catch(error) {
-            throw new DBError("소셜 회원 DB 조회 오류");
         }
     
     

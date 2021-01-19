@@ -17,7 +17,9 @@ const {
     TEST_QID,
     TEST_ANSWER,
     NO_AT_EMAIL
-} = require("../utils/user-info-example");
+} = require("../utils/user-info-examples");
+
+const { DB_USER_FIND_ERR_MSG, DB_USER_CREATE_ERR_MSG, DB_USER_QUESTION_CREATE_ERR_MSG } = require("../utils/error-messages");
 
 const db = require("../models");
 const registrationService = require("../services/registration-service.js");
@@ -25,27 +27,25 @@ const registrationService = require("../services/registration-service.js");
 describe("services/registration-service.js", () => {
 
     afterAll(() => {
-        jest.resetAllMocks();
+        jest.restoreAllMocks();
     });
 
     describe("CheckEmailDuplication function test", () => {
           
-        test("InvalidParamsError test", () => {            
-            expect(async () => {
-                await registrationService.checkEmailDuplication(NO_AT_EMAIL);
-            }).rejects.toThrow(InvalidParamsError);
+        test("InvalidParamsError test", async () => {            
+            await expect(registrationService.checkEmailDuplication(NO_AT_EMAIL))
+            .rejects.toThrow(InvalidParamsError);
         });
 
-        test("MissingRequiredParamsError test", () => {
-            expect(async () => {
-                await registrationService.checkEmailDuplication(undefined);
-            }).rejects.toThrow(MissingRequiredParamsError);
+        test("MissingRequiredParamsError test", async () => {
+            await expect(registrationService.checkEmailDuplication(undefined))
+            .rejects.toThrow(MissingRequiredParamsError);
         });
 
-        test("DuplicatedEmailError test", () => {
+        test("DuplicatedEmailError test", async () => {
             db.user.findOne = jest.fn().mockResolvedValue({
                 uid: TEST_UID, 
-                email: TEST_EMAIL, 
+                email: "todory2002@naver.com", 
                 password: TEST_PASSWORD, 
                 name: TEST_NAME, 
                 birth_date: TEST_BIRTH_DATE,
@@ -53,46 +53,35 @@ describe("services/registration-service.js", () => {
                 valid: TEST_OFF_VALID,
             });
 
-            expect(async () => {
-                await registrationService.checkEmailDuplication(TEST_EMAIL);
-            }).rejects.toThrow(DuplicatedEmailError);
+            await expect(registrationService.checkEmailDuplication(TEST_EMAIL))
+            .rejects.toThrow(DuplicatedEmailError);
         });
 
-        test("DBError test", () => {
+        test("DBError test", async () => {  
+            // 이메일 조회 오류
             db.user.findOne = jest.fn().mockImplementation(() => {
                 throw new Error();
             });
 
-            expect(async () => {
-                await registrationService.checkEmailDuplication(TEST_EMAIL);
-            }).rejects.toThrow(DBError);
+            await expect(registrationService.checkEmailDuplication(TEST_EMAIL))
+            .rejects.toThrow(expect.objectContaining({ message: DB_USER_FIND_ERR_MSG }));
         });
-
-        // test("Success test", () => {
-        //     db.user.findOne = jest.fn().mockResolvedValue(null);
-
-        //     expect(async () => {
-        //         await registrationService.checkEmailDuplication(TEST_EMAIL);
-        //     }).not.toThrow();
-        // });
     });
 
 
     describe("registrateUser function test", () => {
         
-        test("InvalidParamsError test", () => {
-            expect(async () => {
-                await registrationService.registrateUser(NO_AT_EMAIL, TEST_PASSWORD, TEST_NAME, TEST_BIRTH_DATE, TEST_QID, TEST_ANSWER);
-            }).rejects.toThrow(InvalidParamsError);
+        test("InvalidParamsError test", async () => {
+            expect(registrationService.registrateUser(NO_AT_EMAIL, TEST_PASSWORD, TEST_NAME, TEST_BIRTH_DATE, TEST_QID, TEST_ANSWER))
+            .rejects.toThrow(InvalidParamsError);
         });
 
-        test("MissingRequiredParamsError test", () => {
-            expect(async () => {
-                await registrationService.registrateUser(undefined, TEST_PASSWORD, TEST_NAME, TEST_BIRTH_DATE, TEST_QID, TEST_ANSWER);
-            }).rejects.toThrow(MissingRequiredParamsError);
+        test("MissingRequiredParamsError test", async () => {
+            expect(registrationService.registrateUser(undefined, TEST_PASSWORD, TEST_NAME, TEST_BIRTH_DATE, TEST_QID, TEST_ANSWER))
+            .rejects.toThrow(MissingRequiredParamsError);
         });
 
-        test("AlreadyExistUserError test", () => {
+        test("AlreadyExistUserError test", async () => {
             db.user.findOne = jest.fn().mockResolvedValue({
                 email: TEST_EMAIL, 
                 password: TEST_PASSWORD, 
@@ -102,38 +91,30 @@ describe("services/registration-service.js", () => {
                 valid: TEST_OFF_VALID,
             });
 
-            expect(async () => {
-                await registrationService.registrateUser(TEST_EMAIL, TEST_PASSWORD, TEST_NAME, TEST_BIRTH_DATE, TEST_QID, TEST_ANSWER);
-            }).rejects.toThrow(AlreadyExistUserError);
+            expect(registrationService.registrateUser(TEST_EMAIL, TEST_PASSWORD, TEST_NAME, TEST_BIRTH_DATE, TEST_QID, TEST_ANSWER))
+            .rejects.toThrow(AlreadyExistUserError);
         });
 
-        test("DBError test", () => {
-            // 유저 조회 오류
-            db.user.findOne = jest.fn().mockImplementation(() => {
-                throw new Error();
+        describe("DBError test", () => {
+            test("Find user test", async () => {
+                // 유저 조회 오류
+                db.user.findOne = jest.fn().mockImplementation(() => {
+                    throw new Error();
+                });
+    
+                expect(registrationService.registrateUser(TEST_EMAIL, TEST_PASSWORD, TEST_NAME, TEST_BIRTH_DATE, TEST_QID, TEST_ANSWER))
+                .rejects.toThrow(expect.objectContaining({ message: DB_USER_FIND_ERR_MSG }));
             });
 
-            expect(async () => {
-                await registrationService.registrateUser(TEST_EMAIL, TEST_PASSWORD, TEST_NAME, TEST_BIRTH_DATE, TEST_QID, TEST_ANSWER);
-            }).rejects.toThrow(DBError);
-
-
-            // 유저 생성 오류
-            db.sequelize.transaction = jest.fn().mockImplementation(() => {
-                throw new Error();
+            test("Create user test", async () => {
+                db.user.findOne = jest.fn().mockResolvedValue(null);
+                db.sequelize.transaction = jest.fn().mockImplementation(() => {
+                    throw new Error();
+                });
+                
+                expect(registrationService.registrateUser(TEST_EMAIL, TEST_PASSWORD, TEST_NAME, TEST_BIRTH_DATE, TEST_QID, TEST_ANSWER))
+                .rejects.toThrow(expect.objectContaining({ message: `${DB_USER_CREATE_ERR_MSG}\n${DB_USER_QUESTION_CREATE_ERR_MSG}` }));
             });
-            
-            expect(async () => {
-                await registrationService.registrateUser(TEST_EMAIL, TEST_PASSWORD, TEST_NAME, TEST_BIRTH_DATE, TEST_QID, TEST_ANSWER);
-            }).rejects.toThrow(DBError);
         });
-
-        // test("Success test", () => {
-        //     db.user.findOne = jest.fn().mockResolvedValue(null);
-
-        //     expect(async () => {
-        //         await registrationService.registrateUser(TEST_EMAIL, TEST_PASSWORD, TEST_NAME, TEST_BIRTH_DATE, TEST_QID, TEST_ANSWER);
-        //     }).not.toThrow();
-        // });
     });
 });

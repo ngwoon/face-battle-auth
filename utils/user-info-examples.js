@@ -13,8 +13,10 @@ module.exports = {
     TEST_GOOGLE_TYPE                    : 3,
     TEST_QID                            : 2,
     TEST_ANSWER                         : "테스트 답변",
-    TEST_VERIFICATION_CODE              : "AbD+=/",
     TEST_CID                            : 1,
+    
+    TEST_VERIFICATION_CODE              : "AbD+=/",
+    DIFF_VERIFICATION_CODE              : "cdE=fa",
 
     // Wrong Email Examples
     SHORT_FORWARD_EMAIL                 : "@naver.com",
