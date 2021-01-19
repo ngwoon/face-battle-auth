@@ -110,6 +110,21 @@ class DuplicatedEmailError extends Error {
     }
 }
 
+/*
+    registrationService - registrateUser Errors
+*/
+class AlreadyExistUserError extends Error {
+    constructor(...params) {
+        super(...params);
+
+        if (Error.captureStackTrace)
+            Error.captureStackTrace(this, AlreadyExistUserError);
+
+        this.message = "이미 존재하는 회원";
+    }
+}
+
+
 
 /*
     authService - normalLogin Errors
@@ -158,6 +173,8 @@ module.exports = {
     AlreadyValidUserError,
     
     DuplicatedEmailError,
+
+    AlreadyExistUserError,
 
     NotExistUserError,
 

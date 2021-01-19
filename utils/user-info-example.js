@@ -13,7 +13,7 @@ module.exports = {
     TEST_GOOGLE_TYPE                    : 3,
     TEST_QID                            : 2,
     TEST_ANSWER                         : "테스트 답변",
-    TEST_VERIFICATION_CODE              : "ABcD+=",
+    TEST_VERIFICATION_CODE              : "AbD+=/",
     TEST_CID                            : 1,
 
     // Wrong Email Examples
@@ -39,9 +39,13 @@ module.exports = {
     IMP_BIRTH_DATE                      : "19961313",
     INCLUDE_NON_DIGIT_BIRTH_DATE        : "1996A123",
 
+    // Wrong type Examples
+    LESS_THAN_0_TYPE                    : -1,
+    GREATER_THAN_3_TYPE                 : 4,
+
     // Wrong Valid Examples
     LESS_THAN_0_VALID                   : -1,
-    GREATER_THAN_3_VALID                : 4,
+    GREATER_THAN_1_VALID                : 2,
 
     // Wrong QID Examples
     LESS_THAN_1_QID                     : 0,
@@ -50,4 +54,9 @@ module.exports = {
     // Wrong Answer Examples
     LESS_THAN_1_LEN_ANSWER              : "",
     GREATER_THAN_10_LEN_ANSWER          : "이것은 테스트 답변이다",
+
+    // Wrong Code Examples
+    LESS_THAN_6_LEN_VERIFICATION_CODE   : "AbD+",
+    GREATER_THAN_6_LEN_VERIFICATION_CODE: "AbcDe+/",
+    IMP_SPECIAL_VERIFICATION_CODE       : "AbD+!@",
 }

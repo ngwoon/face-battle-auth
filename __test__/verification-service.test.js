@@ -1,14 +1,39 @@
 
-const { InvalidParamsError, DBError, ExceededExpiryDateError, InconsistVerificationCodeError, SendEmailError, NoVerificationCodeError, NotExistUserError, AlreadyValidUserError, MissingRequiredParamsError } = require("../utils/errors");
+const { 
+    InvalidParamsError, 
+    DBError, 
+    ExceededExpiryDateError, 
+    InconsistVerificationCodeError, 
+    SendEmailError, 
+    NoVerificationCodeError, 
+    NotExistUserError, 
+    AlreadyValidUserError,
+    MissingRequiredParamsError,
+} = require("../utils/errors");
+
+const { 
+    TEST_UID, 
+    TEST_EMAIL, 
+    TEST_PASSWORD, 
+    TEST_NAME, 
+    TEST_BIRTH_DATE, 
+    TEST_NORMAL_TYPE, 
+    TEST_ON_VALID, 
+    TEST_OFF_VALID,
+    TEST_QID, 
+    TEST_ANSWER, 
+    TEST_VERIFICATION_CODE, 
+    TEST_CID, 
+    NO_AT_EMAIL 
+} = require("../utils/user-info-example");
+
 const db = require("../models");
 const verificationService = require("../services/verification-service");
-const { TEST_UID, TEST_EMAIL, TEST_PASSWORD, TEST_NAME, TEST_BIRTH_DATE, TEST_NORMAL_TYPE, TEST_ON_VALID, TEST_OFF_VALID,
-    TEST_QID, TEST_ANSWER, TEST_VERIFICATION_CODE, TEST_CID, NO_AT_EMAIL } = require("./user-info-example");
+
 
 describe("services/verification-service.js", () => {
 
     afterAll(() => {
-        console.log("mock clear!");
         jest.resetAllMocks();
     });
 
@@ -32,8 +57,13 @@ describe("services/verification-service.js", () => {
 
         test("AlreadyValidUserError test", async () => {
             db.user.findOne = jest.fn().mockResolvedValue({
-                uid: TEST_UID, email: TEST_EMAIL, password: TEST_PASSWORD, name: TEST_NAME, 
-                birth_date: TEST_BIRTH_DATE, type: TEST_NORMAL_TYPE, valid: TEST_ON_VALID
+                uid: TEST_UID,
+                email: TEST_EMAIL, 
+                password: TEST_PASSWORD, 
+                name: TEST_NAME, 
+                birth_date: TEST_BIRTH_DATE, 
+                type: TEST_NORMAL_TYPE, 
+                valid: TEST_ON_VALID,
             });
             
             await expect(verificationService.sendVerificationEmail(TEST_EMAIL))
@@ -69,8 +99,13 @@ describe("services/verification-service.js", () => {
 
         test("NoVerificationCodeError test", async () => {
             db.user.findOne = jest.fn().mockResolvedValue({
-                uid: TEST_UID, email: TEST_EMAIL, password: TEST_PASSWORD, name: TEST_NAME, 
-                birth_date: TEST_BIRTH_DATE, type: TEST_NORMAL_TYPE, valid: TEST_OFF_VALID
+                uid: TEST_UID, 
+                email: TEST_EMAIL,
+                password: TEST_PASSWORD, 
+                name: TEST_NAME, 
+                birth_date: TEST_BIRTH_DATE, 
+                type: TEST_NORMAL_TYPE, 
+                valid: TEST_OFF_VALID,
             });
             db.verification_code.findOne = jest.fn().mockResolvedValue(null);
             
@@ -87,22 +122,49 @@ describe("services/verification-service.js", () => {
 
         test("AlreadyValidUserError test", async () => {
             db.user.findOne = jest.fn().mockResolvedValue({
-                uid: TEST_UID, email: TEST_EMAIL, password: TEST_PASSWORD, name: TEST_NAME, 
-                type: TEST_NORMAL_TYPE, valid: TEST_ON_VALID
+                uid: TEST_UID,
+                email: TEST_EMAIL,
+                password: TEST_PASSWORD, 
+                name: TEST_NAME, 
+                type: TEST_NORMAL_TYPE, 
+                valid: TEST_ON_VALID,
             });
             
             await expect(verificationService.verifyEmail(TEST_EMAIL, TEST_VERIFICATION_CODE))
             .rejects.toThrow(AlreadyValidUserError);
         });
 
-        // TODO 만들어야됨
-        test("DBError test", async () => {
-            db.user.findOne = jest.fn().mockImplementation(() => {
-                throw new Error();
+        describe("DBError test", () => {
+            test("user model DBError test", async () => {
+                // user db error
+                db.user.findOne = jest.fn().mockImplementation(() => {
+                    throw new Error();
+                });
+    
+                await expect(verificationService.verifyEmail(TEST_EMAIL, TEST_VERIFICATION_CODE))
+                .rejects.toThrow(DBError);
             });
 
-            await expect(verificationService.verifyEmail(TEST_EMAIL, TEST_VERIFICATION_CODE))
-            .rejects.toThrow(DBError);
+            test("verification_code model DBError test", async () => {
+                // verification_code db error
+                db.user.findOne = jest.fn().mockResolvedValue({
+                    uid: TEST_UID,
+                    email: TEST_EMAIL,
+                    password: TEST_PASSWORD, 
+                    name: TEST_NAME, 
+                    birth_date: TEST_BIRTH_DATE, 
+                    type: TEST_NORMAL_TYPE, 
+                    valid: TEST_OFF_VALID,
+                });
+                db.verification_code.findOne = jest.fn().mockImplementation(() => {
+                    throw new Error();
+                });
+    
+                await expect(verificationService.verifyEmail(TEST_EMAIL, TEST_VERIFICATION_CODE))
+                .rejects.toThrow(DBError);
+            });
+
         });
+
     });
 });
