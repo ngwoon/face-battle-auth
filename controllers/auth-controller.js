@@ -1,6 +1,13 @@
+const { 
+    InvalidParamsError, 
+    MissingRequiredParamsError, 
+    DBError, 
+    NotExistUserError, 
+    InvalidAccessTokenError, 
+    AxiosError,
+} = require("../utils/errors");
 
-const authService = require("../services/authService");
-const { InvalidParamsError, DBError, NotExistUserError, InvalidAccessTokenError } = require("../errors");
+const authService = require("../services/auth-service");
 
 module.exports = {
     async normalLogIn(req, res, next) {
@@ -13,10 +20,20 @@ module.exports = {
             fail: {
                 invalidParams: {
                     resultCode: "400",
-                    resultMsg: "필수 파라미터가 존재하지 않음",
+                    resultMsg: "유효하지 않은 매개변수",
                     item: {},
                 },
-                inconsistentUserInfo: {
+                missingRequiredParams: {
+                    resultCode: "400",
+                    resultMsg: "필수 파라미터 누락",
+                    item: {},
+                },
+                notValidUser: {
+                    resultCode: "403",
+                    resultMsg: "인증되지 않은 회원",
+                    item: {},
+                },
+                notExistUser: {
                     resultCode: "404",
                     resultMsg: "일치하는 회원 없음",
                     item: {},
@@ -42,8 +59,14 @@ module.exports = {
             if(error instanceof InvalidParamsError)
                 res.status(400).json(retBody.fail.invalidParams);
             
+            else if(error instanceof MissingRequiredParamsError)
+                res.status(400).json(retBody.fail.missingRequiredParams);
+            
+            else if(error instanceof NotValidUserError)
+                res.status(403).json(retBody.fail.notValidUser);
+
             else if(error instanceof NotExistUserError)
-                res.status(404).json(retBody.fail.inconsistentUserInfo);
+                res.status(404).json(retBody.fail.notExistUser);
             
             else if(error instanceof DBError)
                 res.status(500).json(retBody.fail.serverError);
@@ -58,14 +81,19 @@ module.exports = {
                 item: {},
             },
             fail: {
-                invalidAccessToken: {
-                    resultCode: "400",
-                    resultMsg: "유효하지 않은 접근 토큰",
-                    item: {},
-                },
                 invalidParams: {
                     resultCode: "400",
+                    resultMsg: "유효하지 않은 매개변수",
+                    item: {},
+                },
+                missingRequiredParams: {
+                    resultCode: "400",
                     resultMsg: "필수 파라미터 누락",
+                    item: {},
+                },
+                invalidAccessToken: {
+                    resultCode: "401",
+                    resultMsg: "유효하지 않은 접근 토큰",
                     item: {},
                 },
                 serverError: {
@@ -91,9 +119,15 @@ module.exports = {
             if(error instanceof InvalidParamsError)
                 res.status(400).json(retBody.fail.invalidParams);
 
+            else if(error instanceof MissingRequiredParamsError)
+                res.status(400).json(retBody.fail.missingRequiredParams);
+
             else if(error instanceof InvalidAccessTokenError)
-                res.status(400).json(retBody.fail.invalidAccessToken);
+                res.status(401).json(retBody.fail.invalidAccessToken);
  
+            else if(error instanceof AxiosError)
+                res.status(500).json(retBody.fail.serverError);
+
             else if(error instanceof DBError)
                 res.status(500).json(retBody.fail.serverError);
         }

@@ -1,5 +1,20 @@
 
-const { InvalidParamsError, DBError, InvalidAccessTokenError, NotExistUserError } = require("../errors");
+const { 
+    InvalidParamsError, 
+    MissingRequiredParamsError, 
+    DBError, 
+    InvalidAccessTokenError, 
+    NotExistUserError,
+    NotValidUserError,
+    AxiosError,
+} = require("../utils/errors");
+
+const { 
+    DB_USER_FIND_ERR_MSG, 
+    DB_USER_CREATE_ERR_MSG,
+} = require("../utils/error-messages");
+
+const { verifyParams } = require("../modules/verify-params");
 const db = require("../models");
 const jwt = require("../modules/jwt");
 const crypto = require("crypto");
@@ -8,8 +23,12 @@ const axios = require("axios");
 module.exports = {
     async normalLogIn(email, password) {
 
-        // 클라이언트가 필수 파라미터를 충족시키지 않았을 경우
-        if(!(email && password))
+        const verifyResult = verifyParams({email, password});
+
+        if(verifyResult.isParamMissed)
+            throw new MissingRequiredParamsError();
+        
+        if(verifyResult.isParamInvalid)
             throw new InvalidParamsError();
     
         const type = 0;
@@ -27,10 +46,14 @@ module.exports = {
                 raw: true,
             });
         } catch(error) {
-            throw new DBError("일반 로그인 DB 조회 오류", error);
+            throw new DBError(DB_USER_FIND_ERR_MSG, error);
         }
         
         if(currentUser) {
+
+            if(!currentUser.valid)
+                throw new NotValidUserError;
+
             // JWT 토큰 생성
             const createdJWT = jwt.createJWT(email, currentUser.name, type);
 
@@ -47,25 +70,26 @@ module.exports = {
     },
 
     async socialLogIn(accessToken, type, expiresIn) {
-        
-        const urls = ["", "https://kapi.kakao.com/v2/user/me", "https://openapi.naver.com/v1/nid/me", "https://www.googleapis.com/oauth2/v3/userinfo?access_token"];
-        const item = {};
-        let email, name, currentUser;
     
         // 필수 파라미터 확인
         if(!(accessToken && type && expiresIn))
+            throw new MissingRequiredParamsError();
+
+        // 유효하지 않은 type인 경우
+        if(!(type >= 1 && type <= 3))
             throw new InvalidParamsError();
 
+        const urls = ["", "https://kapi.kakao.com/v2/user/me", "https://openapi.naver.com/v1/nid/me", "https://www.googleapis.com/oauth2/v3/userinfo?access_token"];
+        const item = {};
+        let email, name, currentUser;
 
-        console.log(accessToken, type, expiresIn);
 
         // 접근 토큰 검증
         try {
             // Kakao
             if(type === 1) {
-                const axiosResponse = await axios({
+                const axiosResponse = await axios.get({
                     url: urls[type],
-                    method: "GET",
                     headers: {
                         "Authorization": `Bearer ${accessToken}`,
                     }
@@ -77,9 +101,8 @@ module.exports = {
 
             // Naver
             else if(type === 2) {
-                const axiosResponse = await axios({
+                const axiosResponse = await axios.get({
                     url: urls[type],
-                    method: "GET",
                     headers: {
                         "Authorization": `Bearer ${accessToken}`
                     }
@@ -91,16 +114,19 @@ module.exports = {
 
             // Google
             else if(type === 3) {
-                const axiosResponse = await axios({
+                const axiosResponse = await axios.get({
                     url: `${urls[type]}=${accessToken}`,
-                    method: "get",
                 });
 
                 email = axiosResponse.data.email;
                 name = axiosResponse.data.name;
             }
+
         } catch(error) {
-            throw new InvalidAccessTokenError(error);
+            if(error.response)
+                throw new InvalidAccessTokenError(error);
+            else
+                throw new AxiosError(error);
         }
 
         
@@ -108,8 +134,12 @@ module.exports = {
         // 등록되어 있지 않다면 등록
         try {
             currentUser = await db.user.findOne({ where : { email: email, type: type }, raw: true });
-            
-            if(!currentUser) {
+        } catch(error) {
+            throw new DBError(DB_USER_FIND_ERR_MSG);
+        }
+
+        if(!currentUser) {
+            try {
                 currentUser = await db.user.create({
                     email,
                     password: null,
@@ -118,10 +148,9 @@ module.exports = {
                     type,
                     valid: 1,
                 }, { raw: true });
+            } catch(error) {
+                throw new DBError(DB_USER_CREATE_ERR_MSG);
             }
-    
-        } catch(error) {
-            throw new DBError("소셜 회원 DB 조회 오류");
         }
     
     
@@ -137,5 +166,4 @@ module.exports = {
         
         return item;
     },
-
 }

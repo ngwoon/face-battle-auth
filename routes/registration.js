@@ -1,5 +1,5 @@
 const express = require('express');
-const registrationController = require("../controllers/registrationController");
+const registrationController = require("../controllers/registration-controller");
 const router = express.Router();
 
 // 회원정보 등록
