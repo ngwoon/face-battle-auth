@@ -1,0 +1,33 @@
+name: push feature branch
+
+on:
+  push:
+    branches:
+      - feature
+
+jobs:
+  Do-Unit-Test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@master
+
+      - name: Set up node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: 12
+
+      - name: Decrypt Env Files
+        run: gpg --quiet --batch --yes --always-trust --decrypt --passphrase="$ENV_SECRET_KEY" --output envs.tar envs.tar.gpg
+        env: 
+            ENV_SECRET_KEY: ${{ secrets.GIT_SECRET_KEY }}
+ 
+      - name: Unzip Env files
+        run: tar xvf envs.tar
+
+      - name: Install packages
+        run: npm install
+
+      - name: Run jest
+        run: npm test
