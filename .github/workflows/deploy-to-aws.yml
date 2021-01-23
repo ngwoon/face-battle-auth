@@ -1,0 +1,53 @@
+name: Deploy to Test Server
+
+on:
+  pull_request:
+    branches:
+      - develop
+    types: [ closed ]
+
+jobs:
+  SSH-and-Docker-Compose-up:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+
+    steps:
+
+      # Set up
+      - name: Checkout code
+        uses: actions/checkout@master
+
+      - name: Set up node.js
+        uses: actions/setup-node@v2
+
+      - name: Set up docker
+        uses: docker-practice/actions-setup-docker@master
+        with:
+          docker_channel: nightly
+          docker_nightly_version: snapshot-20201008
+
+
+      - name: SSH connection to EC2
+        uses: appleboy/ssh-action@master
+        
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.EC2_PEM }}
+          script: |            
+            rm -rf face-battle-auth
+
+            git clone -b develop --single-branch https://github.com/ngwoon/face-battle-auth.git
+            
+            cd face-battle-auth
+
+            gpg --quiet --batch --yes --always-trust --decrypt --passphrase="${{ secrets.GIT_SECRET_KEY }}" --output envs.tar envs.tar.gpg
+            tar xvf envs.tar
+
+            cd dockerfiles/
+
+            docker-compose down --rmi all --remove-orhpans
+            docker image prune -f
+            docker-compose up -d --build
+
+      

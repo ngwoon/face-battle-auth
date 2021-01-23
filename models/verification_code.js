@@ -18,6 +18,8 @@ module.exports = (sequelize, Datatypes) => {
         freezeTableName: true,
         talbeName: "verification_code",
         underscored: true,
+        chartset: "utf8mb4",
+        collate: "utf8mb4_general_ci",
     });
 
     return verification_code;
