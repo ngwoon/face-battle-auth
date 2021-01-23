@@ -1,5 +1,7 @@
 dockerize -wait tcp://maria-database:3306 -timeout 20s
 
+npm install
+
 echo "Start server"
 npx nodemon bin/www &
 sleep 2
