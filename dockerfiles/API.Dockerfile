@@ -19,7 +19,7 @@ RUN npm install
 # 앱 소스 추가
 COPY . ./
 
-ENV NODE_ENV=development
+ENV NODE_ENV=production
 
 RUN chmod +x ./dockerfiles/api-docker-entrypoint.sh
 ENTRYPOINT ./dockerfiles/api-docker-entrypoint.sh

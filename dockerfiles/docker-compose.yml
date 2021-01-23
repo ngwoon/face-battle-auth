@@ -14,27 +14,32 @@ services:
       context: ../
       dockerfile: dockerfiles/API.Dockerfile
     ports:
-      - 3000:3000
+      - 80:3000
+    restart: always
     container_name: "face-battle"
     depends_on:
       - maria-database
 
 
   maria-database:
-    image: ngwoon/mariadb
+    image: ngwoon/face-battle-db
     networks:
       - "face-battle-network"
+    env_file:
+      - .env
     build:
       context: ../
       dockerfile: dockerfiles/DB.Dockerfile
     ports:
       - 3306:3306
+    volumes:
+      - /home/data:/var/lib/mysql
     restart: always
     container_name: "maria-database"
     environment:
       MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
       MYSQL_DATABASE: face_battle
-      MYSQL_USER: root
+      MYSQL_USER: basic_user
       MYSQL_PASSWORD: ${DB_PASSWORD}
       TZ: Asia/Seoul
     

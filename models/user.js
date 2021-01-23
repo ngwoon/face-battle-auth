@@ -34,6 +34,8 @@ module.exports = (sequelize, Datatypes) => {
         freezeTableName: true,
         underscored: true,
         talbeName: "user",
+        chartset: "utf8mb4",
+        collate: "utf8mb4_general_ci",
     });
 
     user.associate = (models) => {
