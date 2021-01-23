@@ -46,7 +46,7 @@ jobs:
 
             cd dockerfiles/
 
-            docker-compose down --rmi all --remove-orhpans
+            docker-compose down --rmi all --remove-orphans
             docker image prune -f
             docker-compose up -d --build
 
