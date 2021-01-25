@@ -46,16 +46,18 @@ module.exports = {
         };
 
         const password = req.body.password;
-
-        console.log(password);
+        const email = res.locals.email;
+        const type = res.locals.type;
 
         try {
-            const isPasswordValid = await verificationService.verifyPassword(password);
+            const isPasswordValid = await verificationService.verifyPassword(email, password, type);
             if(isPasswordValid)
                 res.status(200).json(retBody.success);
             else
                 res.status(404).json(retBody.fail.inconsistPassword);
         } catch(error) {
+            console.log(error);
+
             if(error instanceof InvalidParamsError)
                 res.status(400).json(retBody.fail.invalidParams);
             

@@ -39,7 +39,7 @@ module.exports = {
 
     async verifyPassword(email, password, type) {
         
-        const verifyResult = verifyParams({email, code});
+        const verifyResult = verifyParams({email, password, type});
 
         if(verifyResult.isParamMissed)
             throw new MissingRequiredParamsError();
@@ -58,7 +58,12 @@ module.exports = {
         // 이 서비스를 거치기 전, authenticateUser 함수로 사용자 인증을 하기 때문에
         // 사용자는 반드시 존재한다고 가정한다.
     
-        if(currentUser.password === crypto.createHash("sha256").update(password).digest("base64"))
+        const hashedPassword = crypto.createHash("sha256").update(password).digest("base64");
+        
+        console.log(currentUser.password);
+        console.log(hashedPassword);
+
+        if(currentUser.password === hashedPassword)
             return true;
         else
             return false;

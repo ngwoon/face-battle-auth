@@ -18,13 +18,13 @@ module.exports = {
     },
     verifyJWT: (token) => {
 
-        let isValid;
+        const item = {
+            payload: {},
+            isValid: true,
+        }
 
         try {
-
-            jwt.verify(token, SECRET);
-            isValid = true;
-        
+            item.payload = jwt.verify(token, SECRET);
         } catch(error) {
             
             if(error.name === "TokenExpiredError")
@@ -36,10 +36,10 @@ module.exports = {
             else if(error.name === "NotBeforeError")
                 console.log("nbf 오류");
 
-            isValid = false;
+            item.isValid = false;
 
         } finally {
-            return isValid;
+            return item;
         }
     },
 };
