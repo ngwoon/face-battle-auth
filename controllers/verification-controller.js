@@ -8,6 +8,7 @@ const {
     SendEmailError,
     AlreadyValidUserError,
     NotExistUserError,
+    InconsistPasswordError,
 } = require("../utils/errors");
 
 const verificationService = require("../services/verification-service");
@@ -50,11 +51,8 @@ module.exports = {
         const type = res.locals.type;
 
         try {
-            const isPasswordValid = await verificationService.verifyPassword(email, password, type);
-            if(isPasswordValid)
-                res.status(200).json(retBody.success);
-            else
-                res.status(404).json(retBody.fail.inconsistPassword);
+            await verificationService.verifyPassword(email, password, type);
+            res.status(200).json(retBody.success);
         } catch(error) {
             console.log(error);
 
@@ -63,6 +61,9 @@ module.exports = {
             
             else if(error instanceof MissingRequiredParamsError)
                 res.status(400).json(retBody.fail.missingRequiredParams);
+
+            else if(error instanceof InconsistPasswordError)
+                res.status(404).json(retBody.fail.inconsistPassword);
 
             else if(error instanceof DBError)
                 res.status(500).json(retBody.fail.serverError);

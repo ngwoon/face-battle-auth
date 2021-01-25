@@ -3,6 +3,7 @@ const {
     DBError, 
     ExceededExpiryDateError, 
     InconsistVerificationCodeError, 
+    InconsistPasswordError,
     SendEmailError, 
     NoVerificationCodeError, 
     NotExistUserError, 
@@ -63,10 +64,8 @@ module.exports = {
         console.log(currentUser.password);
         console.log(hashedPassword);
 
-        if(currentUser.password === hashedPassword)
-            return true;
-        else
-            return false;
+        if(currentUser.password !== hashedPassword)
+            throw new InconsistPasswordError();
     },
 
     async verifyEmail(email, code) {
