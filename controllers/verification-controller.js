@@ -13,11 +13,12 @@ const {
 const verificationService = require("../services/verification-service");
 
 module.exports = {
-    async sendVerificationEmail(req, res, next) {
-        const retBody = {
+
+    async verifyPassword(req, res, next) {
+        const retBody ={
             success: {
                 resultCode: "200",
-                resultMsg: "이메일 인증 코드 발송 성공",
+                resultMsg: "비밀번호 일치",
                 item: {},
             },
             fail: {
@@ -31,57 +32,41 @@ module.exports = {
                     resultMsg: "필수 파라미터 누락",
                     item: {},
                 },
-                notExistUser: {
-                    resultCode: "403",
-                    resultMsg: "존재하지 않는 회원",
-                    item: {},
-                },
-                alreadyValidUser: {
-                    resultCode: "403",
-                    resultMsg: "이미 활성화된 회원",
-                    item: {},
-                },
-                cannotSendEmail: {
-                    resultCode: "500",
-                    resultMsg: "이메일 인증 코드 발송 실패",
+                inconsistPassword: {
+                    resultCode: "404",
+                    resultMsg: "비밀번호 일치하지 않음",
                     item: {},
                 },
                 serverError: {
                     resultCode: "500",
                     resultMsg: "서버 오류",
                     item: {},
-                },
-            }
-        }
+                }
+            },
+        };
 
-        const email = req.body.email;
-    
+        const password = req.body.password;
+
+        console.log(password);
+
         try {
-            await verificationService.sendVerificationEmail(email);
-            res.status(200).json(retBody.success);
+            const isPasswordValid = await verificationService.verifyPassword(password);
+            if(isPasswordValid)
+                res.status(200).json(retBody.success);
+            else
+                res.status(404).json(retBody.fail.inconsistPassword);
         } catch(error) {
-            console.log(error);
-
             if(error instanceof InvalidParamsError)
                 res.status(400).json(retBody.fail.invalidParams);
             
             else if(error instanceof MissingRequiredParamsError)
                 res.status(400).json(retBody.fail.missingRequiredParams);
 
-            else if(error instanceof AlreadyValidUserError)
-                res.status(403).json(retBody.fail.alreadyValidUser);
-
-            else if(error instanceof NotExistUserError)
-                res.status(403).json(retBody.fail.notExistUser);
-
-            else if(error instanceof SendEmailError)
-                res.status(500).json(retBody.fail.cannotSendEmail);
-
             else if(error instanceof DBError)
                 res.status(500).json(retBody.fail.serverError);
         }
     },
- 
+
     async verifyEmail(req, res, next) {
         const retBody = {
             success: {
@@ -144,7 +129,7 @@ module.exports = {
             console.log(error);
 
             if(error instanceof InvalidParamsError)
-                res.status(400).json(retBody.fail.InvalidParams);
+                res.status(400).json(retBody.fail.invalidParams);
 
             if(error instanceof MissingRequiredParamsError)
                 res.status(400).json(retBody.fail.missingRequiredParams);
@@ -167,5 +152,71 @@ module.exports = {
             else if(error instanceof DBError)
                 res.status(500).json(retBody.fail.serverError);
         }
-    }
+    },
+
+    async sendVerificationEmail(req, res, next) {
+        const retBody = {
+            success: {
+                resultCode: "200",
+                resultMsg: "이메일 인증 코드 발송 성공",
+                item: {},
+            },
+            fail: {
+                invalidParams: {
+                    resultCode: "400",
+                    resultMsg: "유효하지 않은 매개변수",
+                    item: {},
+                },
+                missingRequiredParams: {
+                    resultCode: "400",
+                    resultMsg: "필수 파라미터 누락",
+                    item: {},
+                },
+                notExistUser: {
+                    resultCode: "403",
+                    resultMsg: "존재하지 않는 회원",
+                    item: {},
+                },
+                alreadyValidUser: {
+                    resultCode: "403",
+                    resultMsg: "이미 활성화된 회원",
+                    item: {},
+                },
+                serverError: {
+                    resultCode: "500",
+                    resultMsg: "서버 오류",
+                    item: {},
+                },
+            }
+        }
+
+        const email = req.body.email;
+    
+        try {
+            await verificationService.sendVerificationEmail(email);
+            res.status(200).json(retBody.success);
+        } catch(error) {
+            console.log(error);
+
+            if(error instanceof InvalidParamsError)
+                res.status(400).json(retBody.fail.invalidParams);
+            
+            else if(error instanceof MissingRequiredParamsError)
+                res.status(400).json(retBody.fail.missingRequiredParams);
+
+            else if(error instanceof AlreadyValidUserError)
+                res.status(403).json(retBody.fail.alreadyValidUser);
+
+            else if(error instanceof NotExistUserError)
+                res.status(403).json(retBody.fail.notExistUser);
+
+            else if(error instanceof SendEmailError)
+                res.status(500).json(retBody.fail.serverError);
+
+            else if(error instanceof DBError)
+                res.status(500).json(retBody.fail.serverError);
+        }
+    },
+ 
+    
 }
