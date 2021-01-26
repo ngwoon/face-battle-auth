@@ -1,9 +1,7 @@
 const express = require('express');
 const router = express.Router();
+const modificationController = require("../controllers/modification-controller");
 
-/* GET home page. */
-router.get('/', function(req, res, next) {
-  res.sendFile("index");
-});
+router.patch('/', modificationController.modifyPassword);
 
 module.exports = router;
