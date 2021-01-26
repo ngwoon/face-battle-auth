@@ -3,6 +3,7 @@ const {
     DBError, 
     ExceededExpiryDateError, 
     InconsistVerificationCodeError, 
+    InconsistPasswordError,
     SendEmailError, 
     NoVerificationCodeError, 
     NotExistUserError, 
@@ -36,6 +37,37 @@ const MAIL_CONTENT = "Face Battle 앱에 회원이 된 것을 축하드립니다
 
 
 module.exports = {
+
+    async verifyPassword(email, password, type) {
+        
+        const verifyResult = verifyParams({email, password, type});
+
+        if(verifyResult.isParamMissed)
+            throw new MissingRequiredParamsError();
+        
+        if(verifyResult.isParamInvalid)
+            throw new InvalidParamsError();
+
+        let currentUser;
+
+        try {
+            currentUser = await db.user.findOne({ where: { email, type }, raw: true });
+        } catch(error) {
+            throw new DBError(DB_USER_FIND_ERR_MSG, error);
+        }
+
+        // 이 서비스를 거치기 전, authenticateUser 함수로 사용자 인증을 하기 때문에
+        // 사용자는 반드시 존재한다고 가정한다.
+    
+        const hashedPassword = crypto.createHash("sha256").update(password).digest("base64");
+        
+        console.log(currentUser.password);
+        console.log(hashedPassword);
+
+        if(currentUser.password !== hashedPassword)
+            throw new InconsistPasswordError();
+    },
+
     async verifyEmail(email, code) {
 
         const verifyResult = verifyParams({email, code});

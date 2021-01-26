@@ -22,10 +22,17 @@ module.exports = {
     
         if(req.headers.authorization) {
             const token = req.headers.authorization.split(" ")[1];
-            if(token && jwt.verifyJWT(token))
-                next();
-            else
-                next(retBody.fail.invalidToken);
+            if(token) {
+                const tokenInfo = jwt.verifyJWT(token);
+                if(tokenInfo.isValid) {
+                    res.locals.email = tokenInfo.payload.email;
+                    res.locals.name = tokenInfo.payload.name;
+                    res.locals.type = tokenInfo.payload.type;
+                    next();
+                }
+                else
+                    next(retBody.fail.invalidToken);
+            }
         } else
             next(retBody.fail.unauthenticatedClient);
     }

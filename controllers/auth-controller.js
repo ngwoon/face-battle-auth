@@ -3,6 +3,7 @@ const {
     MissingRequiredParamsError, 
     DBError, 
     NotExistUserError, 
+    NotValidUserError,
     InvalidAccessTokenError, 
     AxiosError,
 } = require("../utils/errors");
@@ -26,6 +27,11 @@ module.exports = {
                 missingRequiredParams: {
                     resultCode: "400",
                     resultMsg: "필수 파라미터 누락",
+                    item: {},
+                },
+                notExistUser: {
+                    resultCode: "403",
+                    resultMsg: "존재하지 않는 회원",
                     item: {},
                 },
                 notValidUser: {

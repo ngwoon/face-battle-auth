@@ -95,6 +95,20 @@ class AlreadyValidUserError extends Error {
     }
 }
 
+/*
+    verificationService - verifyPassword Errors
+*/
+class InconsistPasswordError extends Error {
+    constructor(...params) {
+        super(...params);
+
+        if (Error.captureStackTrace)
+            Error.captureStackTrace(this, InconsistPasswordError);
+
+        this.message = "비밀번호 일치하지 않음";
+    }
+}
+
 
 /*
     registrationService - checkEmailDuplication Errors
@@ -180,6 +194,7 @@ class AxiosError extends Error {
 
 
 
+
 module.exports = {
     InvalidParamsError,
     MissingRequiredParamsError,
@@ -191,6 +206,8 @@ module.exports = {
 
     SendEmailError,
     AlreadyValidUserError,
+    
+    InconsistPasswordError,
     
     DuplicatedEmailError,
 

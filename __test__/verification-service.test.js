@@ -9,6 +9,7 @@ const {
     NotExistUserError, 
     AlreadyValidUserError,
     MissingRequiredParamsError,
+    InconsistPasswordError,
 } = require("../utils/errors");
 
 const { 
@@ -52,6 +53,42 @@ describe("services/verification-service.js", () => {
         TEST_EXPIRY_DATE = parseInt(Date.now() / 1000);
         VALID_EXPIRY_DATE = TEST_EXPIRY_DATE + 100;
         PASSED_EXPIRY_DATE = TEST_EXPIRY_DATE - 100;
+    });
+
+    describe("VerifyPassword function test", () => {
+        test("InvalidParamseError test", async () => {
+            await expect(verificationService.verifyPassword(NO_AT_EMAIL, TEST_PASSWORD, TEST_NORMAL_TYPE))
+            .rejects.toThrow(InvalidParamsError);
+        });
+
+        test("MissingRequiredParamsError test", async () => {
+            await expect(verificationService.verifyPassword(undefined, TEST_PASSWORD, TEST_NORMAL_TYPE))
+            .rejects.toThrow(MissingRequiredParamsError);
+        });
+        
+        test("InconsistPasswordError test", async () => {
+            db.user.findOne = jest.fn().mockResolvedValue({
+                uid: TEST_UID,
+                email: TEST_EMAIL, 
+                password: "testpassword11!@",
+                name: TEST_NAME,
+                birth_date: TEST_BIRTH_DATE, 
+                type: TEST_NORMAL_TYPE, 
+                valid: TEST_ON_VALID,
+            });
+            
+            await expect(verificationService.verifyPassword(TEST_EMAIL, TEST_PASSWORD, TEST_NORMAL_TYPE))
+            .rejects.toThrow(InconsistPasswordError);
+        });
+
+        test("DBError test", async () => {
+            db.user.findOne = jest.fn().mockImplementation(() => {
+                throw new Error(); 
+            });
+
+            await expect(verificationService.verifyPassword(TEST_EMAIL, TEST_PASSWORD, TEST_NORMAL_TYPE))
+            .rejects.toThrow(expect.objectContaining({ message: DB_USER_FIND_ERR_MSG }));
+        });
     });
 
     describe("SendVerificationEmail function test", () => {
