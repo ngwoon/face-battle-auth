@@ -1,6 +1,5 @@
 const { 
     InvalidParamsError, 
-    DBError,
     MissingRequiredParamsError,
     DuplicatedEmailError,
     AlreadyExistUserError 

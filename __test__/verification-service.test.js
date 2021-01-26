@@ -1,7 +1,6 @@
 
 const { 
     InvalidParamsError, 
-    DBError, 
     ExceededExpiryDateError, 
     InconsistVerificationCodeError, 
     SendEmailError, 
@@ -81,13 +80,15 @@ describe("services/verification-service.js", () => {
             .rejects.toThrow(InconsistPasswordError);
         });
 
-        test("DBError test", async () => {
-            db.user.findOne = jest.fn().mockImplementation(() => {
-                throw new Error(); 
+        describe("DBError test", () => {
+            test("Find user test", async () => {
+                db.user.findOne = jest.fn().mockImplementation(() => {
+                    throw new Error(); 
+                });
+    
+                await expect(verificationService.verifyPassword(TEST_EMAIL, TEST_PASSWORD, TEST_NORMAL_TYPE))
+                .rejects.toThrow(expect.objectContaining({ message: DB_USER_FIND_ERR_MSG }));
             });
-
-            await expect(verificationService.verifyPassword(TEST_EMAIL, TEST_PASSWORD, TEST_NORMAL_TYPE))
-            .rejects.toThrow(expect.objectContaining({ message: DB_USER_FIND_ERR_MSG }));
         });
     });
 
