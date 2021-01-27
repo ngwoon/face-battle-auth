@@ -192,6 +192,20 @@ class AxiosError extends Error {
 }
 
 
+/*
+    findService - findPassword Errors
+*/
+class InconsistAnswerError extends Error {
+    constructor(...params) {
+        super(...params);
+
+        if (Error.captureStackTrace)
+            Error.captureStackTrace(this, InconsistAnswerError);
+
+        this.message = "정확하지 않은 답변";
+    }
+}
+
 
 
 
@@ -218,4 +232,6 @@ module.exports = {
 
     InvalidAccessTokenError,
     AxiosError,
+
+    InconsistAnswerError,
 };
