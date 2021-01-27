@@ -13,28 +13,24 @@ const {
 
 const { 
     DB_USER_FIND_ERR_MSG, 
-    DB_VERIFICATION_CODE_FIND_MSG, 
+    DB_VERIFICATION_CODE_FIND_ERR_MSG, 
     DB_USER_UPDATE_ERR_MSG, 
-    DB_VERIFICATION_CODE_DELETE_MSG, 
-    DB_VERIFICATION_CODE_CREATE_MSG 
+    DB_VERIFICATION_CODE_DELETE_ERR_MSG, 
+    DB_VERIFICATION_CODE_CREATE_ERR_MSG
 } = require("../utils/error-messages");
 
 const { verifyParams } = require("../modules/verify-params");
-const nodemailer = require("nodemailer");
+const { sendMail } = require("../modules/mail");
 const crypto = require("crypto");
 const db = require("../models");
 const jwt = require("../modules/jwt");
 
-
-const VERIFICATION_EXPIRY_PERIOD = 300;
-const HASH_STRING = process.env.HASH_STRING;
-const ADMIN_MAIL_ADDRESS = process.env.ADMIN_MAIL_ADDRESS;
-const ADMIN_MAIL_PASSWORD = process.env.ADMIN_MAIL_PASSWORD;
-const MAIL_SUBJECT = "[no-reply] Face Battle 앱의 인증코드";
-const MAIL_CONTENT = "Face Battle 앱에 회원이 된 것을 축하드립니다!\n \
+const VERIFICATION_MAIL_SUBJECT = "[no-reply] Face Battle 앱의 인증코드";
+const VERIFICATION_MAIL_CONTENT = "Face Battle 앱에 회원이 된 것을 축하드립니다!\n \
                     이메일 인증을 위해 아래 코드를 입력해 주세요.\n \
                     <h2>";
-
+const VERIFICATION_EXPIRY_PERIOD = 300;
+const HASH_STRING = process.env.HASH_STRING;
 
 module.exports = {
 
@@ -99,7 +95,7 @@ module.exports = {
         try {
             verificationCodeRow = await db.verification_code.findOne({ where: { uid: currentUser.uid } });
         } catch(error) {
-            throw new DBError(DB_VERIFICATION_CODE_FIND_MSG, error);
+            throw new DBError(DB_VERIFICATION_CODE_FIND_ERR_MSG, error);
         }
         
         if(verificationCodeRow) {
@@ -113,7 +109,7 @@ module.exports = {
                     try {
                         await db.sequelize.transaction(async (t) => {
                             await db.user.update({ valid: 1 }, { where : { uid: currentUser.uid }, transaction: t });
-                            await db.verification_code.destroy({ where: { code: code }, transaction: t});
+                            await db.verification_code.destroy({ where: { code: code }, transaction: t });
                         });
 
                         currentUser.valid = 1;
@@ -125,7 +121,7 @@ module.exports = {
                         return { jwt: createdJWT, userInfo: currentUser };
         
                     } catch(error) {
-                        throw new DBError(`${DB_USER_UPDATE_ERR_MSG}\n${DB_VERIFICATION_CODE_DELETE_MSG}`, error);
+                        throw new DBError(`${DB_USER_UPDATE_ERR_MSG}\n${DB_VERIFICATION_CODE_DELETE_ERR_MSG}`, error);
                     }
                 }
                 // 만료 기간이 지난 경우
@@ -183,7 +179,7 @@ module.exports = {
         try {
             verificationCodeRow = await db.verification_code.findOne({ where: { uid } });
         } catch(error) {
-            throw new DBError(DB_VERIFICATION_CODE_FIND_MSG, error);
+            throw new DBError(DB_VERIFICATION_CODE_FIND_ERR_MSG, error);
         }
         
         // 새로운 인증코드 발급을 위해 해당 인증코드 삭제
@@ -191,7 +187,7 @@ module.exports = {
             try {
                 await db.verification_code.destroy({ where: { uid } });
             } catch(error) {
-                throw new DBError(DB_VERIFICATION_CODE_DELETE_MSG, error);
+                throw new DBError(DB_VERIFICATION_CODE_DELETE_ERR_MSG, error);
             }
         }
         
@@ -209,14 +205,14 @@ module.exports = {
                 expiry_date: Date.now()/1000 + VERIFICATION_EXPIRY_PERIOD,
             }, { raw: true });
         } catch(error) {
-            throw new DBError(DB_VERIFICATION_CODE_CREATE_MSG, error);
+            throw new DBError(DB_VERIFICATION_CODE_CREATE_ERR_MSG, error);
         }
 
 
 
         try {
             // 인증 메일 발송
-            await this.sendMail(email, verificationCode);
+            await sendMail(email, VERIFICATION_MAIL_SUBJECT, VERIFICATION_MAIL_CONTENT + verificationCode + "</h2>");
         } catch(error) {
             let isEmailError = true;
 
@@ -224,7 +220,7 @@ module.exports = {
                 await db.verification_code.destroy({ where: { uid } });
             } catch(error) {
                 isEmailError = false;
-                throw new DBError(DB_VERIFICATION_CODE_DELETE_MSG, error);
+                throw new DBError(DB_VERIFICATION_CODE_DELETE_ERR_MSG, error);
             }
 
             if(isEmailError)
@@ -232,31 +228,5 @@ module.exports = {
             else
                 throw new DBError(error.message, error);
         }
-    },
-
-    sendMail(email, verificationCode) {
-        return new Promise((resolve, reject) => {
-            const mail = nodemailer.createTransport({
-                service: "gmail",
-                auth: {
-                    user: ADMIN_MAIL_ADDRESS,
-                    pass: ADMIN_MAIL_PASSWORD,
-                },
-            });
-    
-            const mailOptions = {
-                from: ADMIN_MAIL_ADDRESS,
-                to: email,
-                subject: MAIL_SUBJECT,
-                html: MAIL_CONTENT + verificationCode + "</h2>",
-            };
-    
-            mail.sendMail(mailOptions, (error, info) => {
-                if(error)
-                    reject(error);
-                else
-                    resolve(info);
-            });
-        });  
     },
 }
