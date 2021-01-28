@@ -26,7 +26,12 @@ const {
     NO_AT_EMAIL
 } = require("../utils/user-info-examples");
 
-const { DB_USER_FIND_ERR_MSG, DB_VERIFICATION_CODE_FIND_MSG, DB_VERIFICATION_CODE_DELETE_MSG, DB_USER_UPDATE_ERR_MSG } = require("../utils/error-messages");
+const { 
+    DB_USER_FIND_ERR_MSG, 
+    DB_VERIFICATION_CODE_FIND_ERR_MSG, 
+    DB_VERIFICATION_CODE_DELETE_ERR_MSG, 
+    DB_USER_UPDATE_ERR_MSG
+} = require("../utils/error-messages");
 
 const path = require("path");
 require("dotenv").config({ path: path.join(__dirname, "../env/development.env") });
@@ -35,12 +40,14 @@ const db = require("../models");
 const verificationService = require("../services/verification-service");
 const nodemailer = require("nodemailer");
 
+
+
+
 jest.mock("nodemailer");
 
 let TEST_EXPIRY_DATE,
     VALID_EXPIRY_DATE,
     PASSED_EXPIRY_DATE;
-
 
 describe("services/verification-service.js", () => {
 
@@ -188,7 +195,7 @@ describe("services/verification-service.js", () => {
                 });
     
                 await expect(verificationService.sendVerificationEmail(TEST_EMAIL))
-                .rejects.toThrow(expect.objectContaining({ message: DB_VERIFICATION_CODE_FIND_MSG }));
+                .rejects.toThrow(expect.objectContaining({ message: DB_VERIFICATION_CODE_FIND_ERR_MSG }));
             });
 
             test("Delete past verification code test", async () => {
@@ -212,7 +219,7 @@ describe("services/verification-service.js", () => {
                 });
     
                 await expect(verificationService.sendVerificationEmail(TEST_EMAIL))
-                .rejects.toThrow(expect.objectContaining({ message: DB_VERIFICATION_CODE_DELETE_MSG }));
+                .rejects.toThrow(expect.objectContaining({ message: DB_VERIFICATION_CODE_DELETE_ERR_MSG }));
             });
 
             test("Delete verification code caused by sending email fail test", async () => {
@@ -247,7 +254,7 @@ describe("services/verification-service.js", () => {
                 });
     
                 await expect(verificationService.sendVerificationEmail(TEST_EMAIL))
-                .rejects.toThrow(expect.objectContaining({ message: DB_VERIFICATION_CODE_DELETE_MSG }));
+                .rejects.toThrow(expect.objectContaining({ message: DB_VERIFICATION_CODE_DELETE_ERR_MSG }));
             });
         });
 
@@ -374,7 +381,7 @@ describe("services/verification-service.js", () => {
                 });
     
                 await expect(verificationService.verifyEmail(TEST_EMAIL, TEST_VERIFICATION_CODE))
-                .rejects.toThrow(expect.objectContaining({ message: DB_VERIFICATION_CODE_FIND_MSG }));
+                .rejects.toThrow(expect.objectContaining({ message: DB_VERIFICATION_CODE_FIND_ERR_MSG }));
             });
 
             test("Update user valid and Delete verified code test", async () => {
@@ -398,7 +405,7 @@ describe("services/verification-service.js", () => {
                 });
     
                 await expect(verificationService.verifyEmail(TEST_EMAIL, TEST_VERIFICATION_CODE))
-                .rejects.toThrow(expect.objectContaining({ message: `${DB_USER_UPDATE_ERR_MSG}\n${DB_VERIFICATION_CODE_DELETE_MSG}` }));
+                .rejects.toThrow(expect.objectContaining({ message: `${DB_USER_UPDATE_ERR_MSG}\n${DB_VERIFICATION_CODE_DELETE_ERR_MSG}` }));
             });
         });
     });
