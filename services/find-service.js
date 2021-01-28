@@ -4,6 +4,7 @@ const {
     NotExistUserError,
     InconsistAnswerError,
     DBError,
+    SendEmailError,
 } = require("../utils/errors");
 
 const { 
@@ -42,6 +43,8 @@ module.exports = {
             throw new DBError(DB_USER_FIND_ERR_MSG, error);
         }
 
+        // findAll은 검색 조건에 맞는 결과가 없을 경우
+        // null이 아닌 빈 배열을 리턴함
         if(userList.length === 0)
             throw new NotExistUserError();
         
@@ -80,7 +83,7 @@ module.exports = {
         // 유저의 질문 - 답변이 정확한지 확인
         let currentUserAnswer;
         try {
-            currentUserAnswer = await db.user_question.findOne({ qid, answer });
+            currentUserAnswer = await db.user_question.findOne({ uid: currentUser.uid, qid, answer });
         } catch(error) {
             throw new DBError(DB_USER_QUESTION_FIND_ERR_MSG);
         }
@@ -92,14 +95,27 @@ module.exports = {
         // 임시 비밀번호 생성, 교체
         const tempPassword = createPassword(TEMP_PASSWORD_LENGTH);
         const hashedPassword = crypto.createHash("sha256").update(tempPassword).digest("base64");
-
+        
         try {
             await db.sequelize.transaction(async (t) => {
-                await db.user.update({ password: hashedPassword }, { where: { email, type }, transaction: t });
-                await sendMail(email, TEMP_PASSWORD_MAIL_SUBJECT, TEMP_PASSWORD_MAIL_CONTENT + tempPassword + "</h2>");
+                try {
+                    await db.user.update({ password: hashedPassword }, { where: { email, type }, transaction: t });
+                } catch(error) {
+                    throw new DBError();
+                }
+
+                try {
+                    await sendMail(email, TEMP_PASSWORD_MAIL_SUBJECT, TEMP_PASSWORD_MAIL_CONTENT + tempPassword + "</h2>");
+                } catch(error) {
+                    throw new SendEmailError();
+                }
             });
         } catch(error) {
-            throw new DBError(DB_USER_UPDATE_ERR_MSG, error);
+            if(error instanceof DBError)
+                throw new DBError(DB_USER_UPDATE_ERR_MSG, error);
+            
+            else if(error instanceof SendEmailError)
+                throw new SendEmailError();
         }
     },
 }
