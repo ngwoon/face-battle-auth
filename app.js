@@ -20,7 +20,6 @@ const logger = require('morgan');
 const { sequelize } = require("./models");
 const { authenticateUser } = require("./middlewares/auth");
 
-const indexRouter = require("./routes/index");
 const verRouter = require('./routes/verification');
 const regRouter = require('./routes/registration');
 const loginRouter = require('./routes/login');
@@ -47,12 +46,10 @@ app.set('view engine', "jade");
 /*
     routers
 */
-app.use("/", indexRouter);
 app.use("/verification", verRouter);
 app.use("/registration", regRouter);
 app.use("/login", loginRouter);
-
-app.use("/find", authenticateUser, findRouter);
+app.use("/find", findRouter);
 app.use("/password", authenticateUser, modRouter);
 app.use("/images", authenticateUser, imagesRouter);
 

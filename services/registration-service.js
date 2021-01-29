@@ -53,13 +53,13 @@ module.exports = {
                     valid,
                     password: hashedPassword,
                     birth_date: birthDate,
-                });
+                }, { transaction: t });
 
                 await db.user_question.create({
                     qid,
                     answer,
                     uid: user.uid,
-                });
+                }, { transaction: t });
             });
         } catch(error) {
             throw new DBError(`${DB_USER_CREATE_ERR_MSG}\n${DB_USER_QUESTION_CREATE_ERR_MSG}`, error);

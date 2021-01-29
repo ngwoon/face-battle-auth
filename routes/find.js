@@ -1,11 +1,8 @@
 const express = require('express');
-const db = require("../models");
 const router = express.Router();
+const findController = require("../controllers/find-controller");
 
-router.post('/', function(req, res, next) {
-  res.json({
-    item: "hello",
-  });
-});
+router.post('/email', findController.findEmail);
+router.post('/password', findController.findPassword);
 
 module.exports = router;

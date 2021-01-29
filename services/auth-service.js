@@ -52,7 +52,7 @@ module.exports = {
         if(currentUser) {
 
             if(!currentUser.valid)
-                throw new NotValidUserError;
+                throw new NotValidUserError();
 
             // JWT 토큰 생성
             const createdJWT = jwt.createJWT(email, currentUser.name, type);

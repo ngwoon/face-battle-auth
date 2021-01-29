@@ -18,7 +18,11 @@ const {
     NO_AT_EMAIL
 } = require("../utils/user-info-examples");
 
-const { DB_USER_FIND_ERR_MSG, DB_USER_CREATE_ERR_MSG, DB_USER_QUESTION_CREATE_ERR_MSG } = require("../utils/error-messages");
+const { 
+    DB_USER_FIND_ERR_MSG,
+    DB_USER_CREATE_ERR_MSG,
+    DB_USER_QUESTION_CREATE_ERR_MSG 
+} = require("../utils/error-messages");
 
 const db = require("../models");
 const registrationService = require("../services/registration-service.js");
