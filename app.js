@@ -26,6 +26,7 @@ const loginRouter = require('./routes/login');
 const findRouter = require('./routes/find');
 const modRouter = require('./routes/modification');
 const imagesRouter = require('./routes/images');
+const signOutRouter = require('./routes/signout');
 
 
 const app = express();
@@ -52,6 +53,7 @@ app.use("/login", loginRouter);
 app.use("/find", findRouter);
 app.use("/password", authenticateUser, modRouter);
 app.use("/images", authenticateUser, imagesRouter);
+app.use("/signout", authenticateUser, signOutRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
