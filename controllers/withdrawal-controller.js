@@ -1,8 +1,7 @@
 const {
     DBError
-}                       = require("../utils/errors");
-
-const withdrawalService    = require("../services/withdrawal-service");
+}                           = require("../utils/errors");
+const withdrawalService     = require("../services/withdrawal-service");
 
 module.exports = {
     async withdraw(req, res, next) {
@@ -21,16 +20,18 @@ module.exports = {
             },
         };
 
-        const email = res.locals.email;
-        const type = res.locals.type;
+        
 
         try {
+            const email = res.locals.email;
+            const type  = res.locals.type;
             await withdrawalService.withdraw(email, type);
             res.status(200).json(retBody.success);
         } catch(error) {
             console.log(error);
+
             if(error instanceof DBError)
-                res.status(500).json(retBody.fail.serverError);
+                next(retBody.fail.serverError);
         } 
     },
 }

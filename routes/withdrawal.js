@@ -1,6 +1,6 @@
-const express = require("express");
-const router = express.Router();
-const withdrawalController = require("../controllers/withdrawal-controller");
+const express               = require("express");
+const router                = express.Router();
+const withdrawalController  = require("../controllers/withdrawal-controller");
 
 router.post("/", withdrawalController.withdraw);
 

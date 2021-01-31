@@ -1,16 +1,15 @@
 
-const withdrawalService    = require("../services/withdrawal-service");
-const db                = require("../models");
 const { 
     TEST_EMAIL,
     TEST_NORMAL_TYPE
-}                       = require("../utils/user-info-examples");
+}                           = require("../utils/user-info-examples");
 const { 
     DB_USER_DELETE_ERR_MSG
-}                       = require("../utils/error-messages");
+}                           = require("../utils/error-messages");
+const withdrawalService     = require("../services/withdrawal-service");
+const db                    = require("../models");
 
 describe("services/withdrawal-service.js", () => {
-    
     afterAll(() => {
         jest.restoreAllMocks();
     });

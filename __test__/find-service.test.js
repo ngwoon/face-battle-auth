@@ -27,7 +27,7 @@ const {
 
 const db            = require("../models");
 const findService   = require("../services/find-service");
-const mail  = require("../modules/mail");
+const mail          = require("../modules/mail");
 
 
 describe("services/find-service.js test", () => {
@@ -85,13 +85,13 @@ describe("services/find-service.js test", () => {
 
         test("InconsistAnswerError test", async () => {
             db.user.findOne = jest.fn().mockResolvedValue({
-                uid: TEST_UID,
-                email: TEST_EMAIL,
-                password: TEST_PASSWORD,
-                name: TEST_NAME,
-                birth_date: TEST_BIRTH_DATE,
-                type: TEST_NORMAL_TYPE,
-                valid: TEST_ON_VALID,
+                uid         : TEST_UID,
+                email       : TEST_EMAIL,
+                password    : TEST_PASSWORD,
+                name        : TEST_NAME,
+                birth_date  : TEST_BIRTH_DATE,
+                type        : TEST_NORMAL_TYPE,
+                valid       : TEST_ON_VALID,
             });
             db.user_question.findOne = jest.fn().mockResolvedValue(null);
 
@@ -101,18 +101,18 @@ describe("services/find-service.js test", () => {
 
         test("SendEmailError test", async () => {
             db.user.findOne = jest.fn().mockResolvedValue({
-                uid: TEST_UID,
-                email: TEST_EMAIL,
-                password: TEST_PASSWORD,
-                name: TEST_NAME,
-                birth_date: TEST_BIRTH_DATE,
-                type: TEST_NORMAL_TYPE,
-                valid: TEST_ON_VALID,
+                uid         : TEST_UID,
+                email       : TEST_EMAIL,
+                password    : TEST_PASSWORD,
+                name        : TEST_NAME,
+                birth_date  : TEST_BIRTH_DATE,
+                type        : TEST_NORMAL_TYPE,
+                valid       : TEST_ON_VALID,
             });
             db.user_question.findOne = jest.fn().mockResolvedValue({
-                uid: TEST_UID,
-                qid: TEST_QID,
-                answer: TEST_ANSWER,
+                uid     : TEST_UID,
+                qid     : TEST_QID,
+                answer  : TEST_ANSWER,
             });
             db.sequelize.transaction = jest.fn().mockImplementation(async () => {
                 await db.user.update();
@@ -139,13 +139,13 @@ describe("services/find-service.js test", () => {
 
             test("Find user_question test", async () => {
                 db.user.findOne = jest.fn().mockResolvedValue({
-                    uid: TEST_UID,
-                    email: TEST_EMAIL,
-                    password: TEST_PASSWORD,
-                    name: TEST_NAME,
-                    birth_date: TEST_BIRTH_DATE,
-                    type: TEST_NORMAL_TYPE,
-                    valid: TEST_ON_VALID,
+                    uid         : TEST_UID,
+                    email       : TEST_EMAIL,
+                    password    : TEST_PASSWORD,
+                    name        : TEST_NAME,
+                    birth_date  : TEST_BIRTH_DATE,
+                    type        : TEST_NORMAL_TYPE,
+                    valid       : TEST_ON_VALID,
                 });
                 db.user_question.findOne = jest.fn().mockImplementation(() => {
                     throw new Error();
@@ -157,18 +157,18 @@ describe("services/find-service.js test", () => {
 
             test("Update user test", async () => {
                 db.user.findOne = jest.fn().mockResolvedValue({
-                    uid: TEST_UID,
-                    email: TEST_EMAIL,
-                    password: TEST_PASSWORD,
-                    name: TEST_NAME,
-                    birth_date: TEST_BIRTH_DATE,
-                    type: TEST_NORMAL_TYPE,
-                    valid: TEST_ON_VALID,
+                    uid         : TEST_UID,
+                    email       : TEST_EMAIL,
+                    password    : TEST_PASSWORD,
+                    name        : TEST_NAME,
+                    birth_date  : TEST_BIRTH_DATE,
+                    type        : TEST_NORMAL_TYPE,
+                    valid       : TEST_ON_VALID,
                 });
                 db.user_question.findOne = jest.fn().mockResolvedValue({
-                    uid: TEST_UID,
-                    qid: TEST_QID,
-                    answer: TEST_ANSWER,
+                    uid     : TEST_UID,
+                    qid     : TEST_QID,
+                    answer  : TEST_ANSWER,
                 });
                 db.sequelize.transaction = jest.fn().mockImplementation(async () => {
                     await db.user.update();

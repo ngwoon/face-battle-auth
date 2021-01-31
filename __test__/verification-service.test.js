@@ -9,8 +9,7 @@ const {
     AlreadyValidUserError,
     MissingRequiredParamsError,
     InconsistPasswordError,
-} = require("../utils/errors");
-
+}                           = require("../utils/errors");
 const { 
     TEST_UID, 
     TEST_EMAIL, 
@@ -24,32 +23,24 @@ const {
     TEST_VERIFICATION_CODE, 
     DIFF_VERIFICATION_CODE,
     NO_AT_EMAIL
-} = require("../utils/user-info-examples");
-
+}                           = require("../utils/user-info-examples");
 const { 
     DB_USER_FIND_ERR_MSG, 
     DB_VERIFICATION_CODE_FIND_ERR_MSG, 
     DB_VERIFICATION_CODE_DELETE_ERR_MSG, 
     DB_USER_UPDATE_ERR_MSG
-} = require("../utils/error-messages");
+}                           = require("../utils/error-messages");
+const path                  = require("path");
+const db                    = require("../models");
 
-const path = require("path");
 require("dotenv").config({ path: path.join(__dirname, "../env/development.env") });
-
-const db = require("../models");
-const verificationService = require("../services/verification-service");
-const nodemailer = require("nodemailer");
-
-
-
-
-jest.mock("nodemailer");
-
-let TEST_EXPIRY_DATE,
-    VALID_EXPIRY_DATE,
-    PASSED_EXPIRY_DATE;
+const verificationService   = require("../services/verification-service");
+const nodemailer            = require("nodemailer");
 
 describe("services/verification-service.js", () => {
+    let TEST_EXPIRY_DATE;
+    let VALID_EXPIRY_DATE;
+    let PASSED_EXPIRY_DATE;
 
     afterAll(() => {
         jest.restoreAllMocks();
@@ -74,13 +65,13 @@ describe("services/verification-service.js", () => {
         
         test("InconsistPasswordError test", async () => {
             db.user.findOne = jest.fn().mockResolvedValue({
-                uid: TEST_UID,
-                email: TEST_EMAIL, 
-                password: "testpassword11!@",
-                name: TEST_NAME,
-                birth_date: TEST_BIRTH_DATE, 
-                type: TEST_NORMAL_TYPE, 
-                valid: TEST_ON_VALID,
+                uid         : TEST_UID,
+                email       : TEST_EMAIL, 
+                password    : "testpassword11!@",
+                name        : TEST_NAME,
+                birth_date  : TEST_BIRTH_DATE, 
+                type        : TEST_NORMAL_TYPE, 
+                valid       : TEST_ON_VALID,
             });
             
             await expect(verificationService.verifyPassword(TEST_EMAIL, TEST_PASSWORD, TEST_NORMAL_TYPE))
@@ -119,13 +110,13 @@ describe("services/verification-service.js", () => {
 
         test("AlreadyValidUserError test", async () => {
             db.user.findOne = jest.fn().mockResolvedValue({
-                uid: TEST_UID,
-                email: TEST_EMAIL, 
-                password: TEST_PASSWORD, 
-                name: TEST_NAME, 
-                birth_date: TEST_BIRTH_DATE, 
-                type: TEST_NORMAL_TYPE, 
-                valid: TEST_ON_VALID,
+                uid         : TEST_UID,
+                email       : TEST_EMAIL, 
+                password    : TEST_PASSWORD, 
+                name        : TEST_NAME, 
+                birth_date  : TEST_BIRTH_DATE, 
+                type        : TEST_NORMAL_TYPE, 
+                valid       : TEST_ON_VALID,
             });
             
             await expect(verificationService.sendVerificationEmail(TEST_EMAIL))
@@ -134,13 +125,13 @@ describe("services/verification-service.js", () => {
 
         test("SendEmailError test", async () => {
             db.user.findOne = jest.fn().mockResolvedValue({
-                uid: TEST_UID,
-                email: TEST_EMAIL, 
-                password: TEST_PASSWORD, 
-                name: TEST_NAME, 
-                birth_date: TEST_BIRTH_DATE, 
-                type: TEST_NORMAL_TYPE,
-                valid: TEST_OFF_VALID,
+                uid         : TEST_UID,
+                email       : TEST_EMAIL, 
+                password    : TEST_PASSWORD, 
+                name        : TEST_NAME, 
+                birth_date  : TEST_BIRTH_DATE, 
+                type        : TEST_NORMAL_TYPE,
+                valid       : TEST_OFF_VALID,
             });
 
             // 이전에 발급받은 인증 코드가 있는지 확인하는 함수 mock
@@ -148,13 +139,14 @@ describe("services/verification-service.js", () => {
 
             // 인증 코드 생성 후 저장하는 함수 mock
             db.verification_code.create = jest.fn().mockResolvedValue({
-                uid: TEST_UID,
-                cid: TEST_CID,
-                code: TEST_VERIFICATION_CODE,
-                expiry_date: VALID_EXPIRY_DATE,
+                uid         : TEST_UID,
+                cid         : TEST_CID,
+                code        : TEST_VERIFICATION_CODE,
+                expiry_date : VALID_EXPIRY_DATE,
             });
         
             // nodemailer의 sendMail 함수 mock
+            jest.mock("nodemailer");
             nodemailer.createTransport = jest.fn().mockImplementation(() => {
                 return {
                     sendMail() {
@@ -182,13 +174,13 @@ describe("services/verification-service.js", () => {
 
             test("Find past verification code test", async () => {
                 db.user.findOne = jest.fn().mockResolvedValue({
-                    uid: TEST_UID,
-                    email: TEST_EMAIL, 
-                    password: TEST_PASSWORD, 
-                    name: TEST_NAME, 
-                    birth_date: TEST_BIRTH_DATE, 
-                    type: TEST_NORMAL_TYPE,
-                    valid: TEST_OFF_VALID,
+                    uid         : TEST_UID,
+                    email       : TEST_EMAIL, 
+                    password    : TEST_PASSWORD, 
+                    name        : TEST_NAME, 
+                    birth_date  : TEST_BIRTH_DATE, 
+                    type        : TEST_NORMAL_TYPE,
+                    valid       : TEST_OFF_VALID,
                 });
                 db.verification_code.findOne = jest.fn().mockImplementation(() => {
                     throw new Error();
@@ -200,19 +192,19 @@ describe("services/verification-service.js", () => {
 
             test("Delete past verification code test", async () => {
                 db.user.findOne = jest.fn().mockResolvedValue({
-                    uid: TEST_UID,
-                    email: TEST_EMAIL, 
-                    password: TEST_PASSWORD, 
-                    name: TEST_NAME, 
-                    birth_date: TEST_BIRTH_DATE, 
-                    type: TEST_NORMAL_TYPE,
-                    valid: TEST_OFF_VALID,
+                    uid         : TEST_UID,
+                    email       : TEST_EMAIL, 
+                    password    : TEST_PASSWORD, 
+                    name        : TEST_NAME, 
+                    birth_date  : TEST_BIRTH_DATE, 
+                    type        : TEST_NORMAL_TYPE,
+                    valid       : TEST_OFF_VALID,
                 });
                 db.verification_code.findOne = jest.fn().mockResolvedValue({
-                    uid: TEST_UID,
-                    cid: TEST_CID,
-                    code: TEST_VERIFICATION_CODE,
-                    expiry_date: PASSED_EXPIRY_DATE,
+                    uid         : TEST_UID,
+                    cid         : TEST_CID,
+                    code        : TEST_VERIFICATION_CODE,
+                    expiry_date : PASSED_EXPIRY_DATE,
                 });
                 db.verification_code.destroy = jest.fn().mockImplementation(() => {
                     throw new Error();
@@ -223,24 +215,24 @@ describe("services/verification-service.js", () => {
             });
 
             test("Delete verification code caused by sending email fail test", async () => {
+                jest.mock("nodemailer");
+
                 db.user.findOne = jest.fn().mockResolvedValue({
-                    uid: TEST_UID,
-                    email: TEST_EMAIL, 
-                    password: TEST_PASSWORD, 
-                    name: TEST_NAME, 
-                    birth_date: TEST_BIRTH_DATE, 
-                    type: TEST_NORMAL_TYPE,
-                    valid: TEST_OFF_VALID,
+                    uid         : TEST_UID,
+                    email       : TEST_EMAIL, 
+                    password    : TEST_PASSWORD, 
+                    name        : TEST_NAME, 
+                    birth_date  : TEST_BIRTH_DATE, 
+                    type        : TEST_NORMAL_TYPE,
+                    valid       : TEST_OFF_VALID,
                 });
                 db.verification_code.findOne = jest.fn().mockResolvedValue(null);
                 db.verification_code.create = jest.fn().mockResolvedValue({
-                    uid: TEST_UID,
-                    cid: TEST_CID,
-                    code: TEST_VERIFICATION_CODE,
-                    expiry_date: VALID_EXPIRY_DATE,
+                    uid         : TEST_UID,
+                    cid         : TEST_CID,
+                    code        : TEST_VERIFICATION_CODE,
+                    expiry_date : VALID_EXPIRY_DATE,
                 });
-                
-                jest.mock("nodemailer");
                 nodemailer.createTransport = jest.fn().mockImplementation(() => {
                     return {
                         sendMail() {
@@ -248,7 +240,6 @@ describe("services/verification-service.js", () => {
                         }
                     };
                 });
-            
                 db.verification_code.destroy = jest.fn().mockImplementation(() => {
                     throw new Error(); 
                 });
@@ -263,7 +254,6 @@ describe("services/verification-service.js", () => {
 
     describe("verifyEmail function test", () => {
         test("InvalidParamsError test", async () => {
-            
             await expect(verificationService.sendVerificationEmail(NO_AT_EMAIL, TEST_VERIFICATION_CODE))
             .rejects.toThrow(InvalidParamsError);
         });
@@ -275,13 +265,13 @@ describe("services/verification-service.js", () => {
 
         test("NoVerificationCodeError test", async () => {
             db.user.findOne = jest.fn().mockResolvedValue({
-                uid: TEST_UID, 
-                email: TEST_EMAIL,
-                password: TEST_PASSWORD, 
-                name: TEST_NAME, 
-                birth_date: TEST_BIRTH_DATE, 
-                type: TEST_NORMAL_TYPE,
-                valid: TEST_OFF_VALID,
+                uid         : TEST_UID, 
+                email       : TEST_EMAIL,
+                password    : TEST_PASSWORD, 
+                name        : TEST_NAME, 
+                birth_date  : TEST_BIRTH_DATE, 
+                type        : TEST_NORMAL_TYPE,
+                valid       : TEST_OFF_VALID,
             });
             db.verification_code.findOne = jest.fn().mockResolvedValue(null);
             
@@ -298,12 +288,13 @@ describe("services/verification-service.js", () => {
 
         test("AlreadyValidUserError test", async () => {
             db.user.findOne = jest.fn().mockResolvedValue({
-                uid: TEST_UID,
-                email: TEST_EMAIL,
-                password: TEST_PASSWORD, 
-                name: TEST_NAME, 
-                type: TEST_NORMAL_TYPE, 
-                valid: TEST_ON_VALID,
+                uid         : TEST_UID,
+                email       : TEST_EMAIL,
+                password    : TEST_PASSWORD, 
+                name        : TEST_NAME, 
+                birth_date  : TEST_BIRTH_DATE, 
+                type        : TEST_NORMAL_TYPE, 
+                valid       : TEST_ON_VALID,
             });
             
             await expect(verificationService.verifyEmail(TEST_EMAIL, TEST_VERIFICATION_CODE))
@@ -312,19 +303,20 @@ describe("services/verification-service.js", () => {
 
         test("InconsistVerificationCodeError test", async () => {
             db.user.findOne = jest.fn().mockResolvedValue({
-                uid: TEST_UID,
-                email: TEST_EMAIL,
-                password: TEST_PASSWORD, 
-                name: TEST_NAME, 
-                type: TEST_NORMAL_TYPE, 
-                valid: TEST_OFF_VALID,
+                uid         : TEST_UID,
+                email       : TEST_EMAIL,
+                password    : TEST_PASSWORD, 
+                name        : TEST_NAME, 
+                birth_date  : TEST_BIRTH_DATE, 
+                type        : TEST_NORMAL_TYPE, 
+                valid       : TEST_OFF_VALID,
             });
             
             db.verification_code.findOne = jest.fn().mockResolvedValue({
-                uid: TEST_UID,
-                cid: TEST_CID,
-                code: DIFF_VERIFICATION_CODE, // 예상하는 인증 코드와 다른 코드
-                expiry_date: TEST_EXPIRY_DATE,
+                uid         : TEST_UID,
+                cid         : TEST_CID,
+                code        : DIFF_VERIFICATION_CODE, // 예상하는 인증 코드와 다른 코드
+                expiry_date : TEST_EXPIRY_DATE,
             });
             
             await expect(verificationService.verifyEmail(TEST_EMAIL, TEST_VERIFICATION_CODE))
@@ -333,19 +325,20 @@ describe("services/verification-service.js", () => {
 
         test("ExceededExpiryDateError test", async () => {
             db.user.findOne = jest.fn().mockResolvedValue({
-                uid: TEST_UID,
-                email: TEST_EMAIL,
-                password: TEST_PASSWORD, 
-                name: TEST_NAME, 
-                type: TEST_NORMAL_TYPE, 
-                valid: TEST_OFF_VALID,
+                uid         : TEST_UID,
+                email       : TEST_EMAIL,
+                password    : TEST_PASSWORD, 
+                name        : TEST_NAME, 
+                birth_date  : TEST_BIRTH_DATE, 
+                type        : TEST_NORMAL_TYPE, 
+                valid       : TEST_OFF_VALID,
             });
 
             db.verification_code.findOne = jest.fn().mockResolvedValue({
-                uid: TEST_UID,
-                cid: TEST_CID,
-                code: TEST_VERIFICATION_CODE, // 예상하는 인증 코드와 다른 코드
-                expiry_date: PASSED_EXPIRY_DATE,
+                uid         : TEST_UID,
+                cid         : TEST_CID,
+                code        : TEST_VERIFICATION_CODE, // 예상하는 인증 코드와 다른 코드
+                expiry_date : PASSED_EXPIRY_DATE,
             });
             
             await expect(verificationService.verifyEmail(TEST_EMAIL, TEST_VERIFICATION_CODE))
@@ -368,13 +361,13 @@ describe("services/verification-service.js", () => {
             test("Find verification code test", async () => {
                 // verification_code db error
                 db.user.findOne = jest.fn().mockResolvedValue({
-                    uid: TEST_UID,
-                    email: TEST_EMAIL,
-                    password: TEST_PASSWORD, 
-                    name: TEST_NAME, 
-                    birth_date: TEST_BIRTH_DATE, 
-                    type: TEST_NORMAL_TYPE, 
-                    valid: TEST_OFF_VALID,
+                    uid         : TEST_UID,
+                    email       : TEST_EMAIL,
+                    password    : TEST_PASSWORD, 
+                    name        : TEST_NAME, 
+                    birth_date  : TEST_BIRTH_DATE, 
+                    type        : TEST_NORMAL_TYPE, 
+                    valid       : TEST_OFF_VALID,
                 });
                 db.verification_code.findOne = jest.fn().mockImplementation(() => {
                     throw new Error();
@@ -386,19 +379,19 @@ describe("services/verification-service.js", () => {
 
             test("Update user valid and Delete verified code test", async () => {
                 db.user.findOne = jest.fn().mockResolvedValue({
-                    uid: TEST_UID,
-                    email: TEST_EMAIL,
-                    password: TEST_PASSWORD, 
-                    name: TEST_NAME, 
-                    birth_date: TEST_BIRTH_DATE, 
-                    type: TEST_NORMAL_TYPE, 
-                    valid: TEST_OFF_VALID,
+                    uid         : TEST_UID,
+                    email       : TEST_EMAIL,
+                    password    : TEST_PASSWORD, 
+                    name        : TEST_NAME, 
+                    birth_date  : TEST_BIRTH_DATE, 
+                    type        : TEST_NORMAL_TYPE, 
+                    valid       : TEST_OFF_VALID,
                 });
                 db.verification_code.findOne = jest.fn().mockResolvedValue({
-                    cid: TEST_CID,
-                    uid: TEST_UID,
-                    code: TEST_VERIFICATION_CODE,
-                    expiry_date: VALID_EXPIRY_DATE,
+                    cid         : TEST_CID,
+                    uid         : TEST_UID,
+                    code        : TEST_VERIFICATION_CODE,
+                    expiry_date : VALID_EXPIRY_DATE,
                 });
                 db.sequelize.transaction = jest.fn().mockImplementation(() => {
                     throw new Error();

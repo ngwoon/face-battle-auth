@@ -3,8 +3,7 @@ const {
     MissingRequiredParamsError,
     DuplicatedEmailError,
     AlreadyExistUserError 
-} = require("../utils/errors");
-
+}                           = require("../utils/errors");
 const { 
     TEST_UID,
     TEST_EMAIL,
@@ -16,19 +15,16 @@ const {
     TEST_QID,
     TEST_ANSWER,
     NO_AT_EMAIL
-} = require("../utils/user-info-examples");
-
+}                           = require("../utils/user-info-examples");
 const { 
     DB_USER_FIND_ERR_MSG,
     DB_USER_CREATE_ERR_MSG,
     DB_USER_QUESTION_CREATE_ERR_MSG 
-} = require("../utils/error-messages");
-
-const db = require("../models");
-const registrationService = require("../services/registration-service.js");
+}                           = require("../utils/error-messages");
+const db                    = require("../models");
+const registrationService   = require("../services/registration-service.js");
 
 describe("services/registration-service.js", () => {
-
     afterAll(() => {
         jest.restoreAllMocks();
     });
@@ -47,13 +43,13 @@ describe("services/registration-service.js", () => {
 
         test("DuplicatedEmailError test", async () => {
             db.user.findOne = jest.fn().mockResolvedValue({
-                uid: TEST_UID, 
-                email: TEST_EMAIL, 
-                password: TEST_PASSWORD, 
-                name: TEST_NAME, 
-                birth_date: TEST_BIRTH_DATE,
-                type: TEST_NORMAL_TYPE, 
-                valid: TEST_OFF_VALID,
+                uid         : TEST_UID, 
+                email       : TEST_EMAIL, 
+                password    : TEST_PASSWORD, 
+                name        : TEST_NAME, 
+                birth_date  : TEST_BIRTH_DATE,
+                type        : TEST_NORMAL_TYPE, 
+                valid       : TEST_OFF_VALID,
             });
 
             await expect(registrationService.checkEmailDuplication(TEST_EMAIL))
@@ -88,12 +84,12 @@ describe("services/registration-service.js", () => {
 
         test("AlreadyExistUserError test", async () => {
             db.user.findOne = jest.fn().mockResolvedValue({
-                email: TEST_EMAIL, 
-                password: TEST_PASSWORD, 
-                name: TEST_NAME, 
-                birth_date: TEST_BIRTH_DATE, 
-                type: TEST_NORMAL_TYPE, 
-                valid: TEST_OFF_VALID,
+                email       : TEST_EMAIL, 
+                password    : TEST_PASSWORD, 
+                name        : TEST_NAME, 
+                birth_date  : TEST_BIRTH_DATE, 
+                type        : TEST_NORMAL_TYPE, 
+                valid       : TEST_OFF_VALID,
             });
 
             expect(registrationService.registrateUser(TEST_EMAIL, TEST_PASSWORD, TEST_NAME, TEST_BIRTH_DATE, TEST_QID, TEST_ANSWER))

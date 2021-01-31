@@ -9,12 +9,10 @@ const {
     AlreadyValidUserError,
     NotExistUserError,
     InconsistPasswordError,
-} = require("../utils/errors");
-
-const verificationService = require("../services/verification-service");
+}                           = require("../utils/errors");
+const verificationService   = require("../services/verification-service");
 
 module.exports = {
-
     async verifyPassword(req, res, next) {
         const retBody ={
             success: {
@@ -46,27 +44,26 @@ module.exports = {
             },
         };
 
-        const password = req.body.password;
-        const email = res.locals.email;
-        const type = res.locals.type;
-
         try {
+            const password  = req.body.password;
+            const email     = res.locals.email;
+            const type      = res.locals.type;
             await verificationService.verifyPassword(email, password, type);
             res.status(200).json(retBody.success);
         } catch(error) {
             console.log(error);
 
             if(error instanceof InvalidParamsError)
-                res.status(400).json(retBody.fail.invalidParams);
+                next(retBody.fail.invalidParams);
             
             else if(error instanceof MissingRequiredParamsError)
-                res.status(400).json(retBody.fail.missingRequiredParams);
+                next(retBody.fail.missingRequiredParams);
 
             else if(error instanceof InconsistPasswordError)
-                res.status(404).json(retBody.fail.inconsistPassword);
+                next(retBody.fail.inconsistPassword);
 
             else if(error instanceof DBError)
-                res.status(500).json(retBody.fail.serverError);
+                next(retBody.fail.serverError);
         }
     },
 
@@ -121,39 +118,40 @@ module.exports = {
             },
         };
         
-        const code = req.body.code;
-        const email = req.body.email;
+
         
         try {
-            const item = await verificationService.verifyEmail(email, code);
-            retBody.success.item = item;
+            const code              = req.body.code;
+            const email             = req.body.email;
+            const item              = await verificationService.verifyEmail(email, code);
+            retBody.success.item    = item;
             res.status(200).json(retBody.success);
         } catch(error) {
             console.log(error);
 
             if(error instanceof InvalidParamsError)
-                res.status(400).json(retBody.fail.invalidParams);
+                next(retBody.fail.invalidParams);
 
-            if(error instanceof MissingRequiredParamsError)
-                res.status(400).json(retBody.fail.missingRequiredParams);
+            else if(error instanceof MissingRequiredParamsError)
+                next(retBody.fail.missingRequiredParams);
 
             else if(error instanceof InconsistVerificationCodeError)
-                res.status(400).json(retBody.fail.inconsistVerificationCode);
+                next(retBody.fail.inconsistVerificationCode);
             
             else if(error instanceof ExceededExpiryDateError)
-                res.status(401).json(retBody.fail.exceededExpiryDate);
+                next(retBody.fail.exceededExpiryDate);
             
             else if(error instanceof NotExistUserError)
-                res.status(403).json(retBody.fail.notExistUser);
+                next(retBody.fail.notExistUser);
             
             else if(error instanceof AlreadyValidUserError)
-                res.status(403).json(retBody.fail.alreadyValidUser);
+                next(retBody.fail.alreadyValidUser);
 
             else if(error instanceof NoVerificationCodeError)
-                res.status(403).json(retBody.fail.noVerificationCode);
+                next(retBody.fail.noVerificationCode);
 
             else if(error instanceof DBError)
-                res.status(500).json(retBody.fail.serverError);
+                next(retBody.fail.serverError);
         }
     },
 
@@ -192,32 +190,31 @@ module.exports = {
                 },
             }
         }
-
-        const email = req.body.email;
     
         try {
+            const email = req.body.email;
             await verificationService.sendVerificationEmail(email);
             res.status(200).json(retBody.success);
         } catch(error) {
             console.log(error);
 
             if(error instanceof InvalidParamsError)
-                res.status(400).json(retBody.fail.invalidParams);
+                next(retBody.fail.invalidParams);
             
             else if(error instanceof MissingRequiredParamsError)
-                res.status(400).json(retBody.fail.missingRequiredParams);
+                next(retBody.fail.missingRequiredParams);
 
             else if(error instanceof AlreadyValidUserError)
-                res.status(403).json(retBody.fail.alreadyValidUser);
+                next(retBody.fail.alreadyValidUser);
 
             else if(error instanceof NotExistUserError)
-                res.status(403).json(retBody.fail.notExistUser);
+                next(retBody.fail.notExistUser);
 
             else if(error instanceof SendEmailError)
-                res.status(500).json(retBody.fail.serverError);
+                next(retBody.fail.serverError);
 
             else if(error instanceof DBError)
-                res.status(500).json(retBody.fail.serverError);
+                next(retBody.fail.serverError);
         }
     },
  

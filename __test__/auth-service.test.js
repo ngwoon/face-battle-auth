@@ -5,8 +5,7 @@ const {
     NotValidUserError,
     InvalidAccessTokenError,
     AxiosError,
-} = require("../utils/errors");
-
+}                   = require("../utils/errors");
 const {
     TEST_UID,
     TEST_EMAIL,
@@ -21,21 +20,18 @@ const {
     NO_AT_EMAIL,
     TEST_ACCESS_TOKEN,
     GREATER_THAN_3_TYPE,
-} = require("../utils/user-info-examples");
-
+}                   = require("../utils/user-info-examples");
 const { 
     DB_USER_FIND_ERR_MSG, 
     DB_USER_CREATE_ERR_MSG,
-} = require("../utils/error-messages");
-
-const axios = require("axios");
-const db = require("../models");
-const authService = require("../services/auth-service");
+}                   = require("../utils/error-messages");
+const axios         = require("axios");
+const db            = require("../models");
+const authService   = require("../services/auth-service");
 
 jest.mock("axios");
 
 describe("services/auth-service.js", () => {
-
     beforeAll(() => {
         jest.restoreAllMocks();
     });
@@ -60,13 +56,13 @@ describe("services/auth-service.js", () => {
 
         test("NotValidUserError test", async () => {
             db.user.findOne = jest.fn().mockResolvedValue({
-                uid: TEST_UID, 
-                email: TEST_EMAIL, 
-                password: TEST_PASSWORD, 
-                name: TEST_NAME, 
-                birth_date: TEST_BIRTH_DATE,
-                type: TEST_NORMAL_TYPE, 
-                valid: TEST_OFF_VALID,
+                uid         : TEST_UID, 
+                email       : TEST_EMAIL, 
+                password    : TEST_PASSWORD, 
+                name        : TEST_NAME, 
+                birth_date  : TEST_BIRTH_DATE,
+                type        : TEST_NORMAL_TYPE, 
+                valid       : TEST_OFF_VALID,
             });
 
             await expect(authService.normalLogIn(TEST_EMAIL, TEST_PASSWORD))
