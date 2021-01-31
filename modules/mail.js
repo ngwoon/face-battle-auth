@@ -1,7 +1,7 @@
-const nodemailer = require("nodemailer");
+const nodemailer            = require("nodemailer");
 
-const ADMIN_MAIL_ADDRESS = process.env.ADMIN_MAIL_ADDRESS;
-const ADMIN_MAIL_PASSWORD = process.env.ADMIN_MAIL_PASSWORD;
+const ADMIN_MAIL_ADDRESS    = process.env.ADMIN_MAIL_ADDRESS;
+const ADMIN_MAIL_PASSWORD   = process.env.ADMIN_MAIL_PASSWORD;
 
 module.exports = {
     sendMail(email, subject, content) {
@@ -16,7 +16,7 @@ module.exports = {
     
             const mailOptions = {
                 from: ADMIN_MAIL_ADDRESS,
-                to: email,
+                to  : email,
                 html: content,
                 subject, 
             };

@@ -1,6 +1,4 @@
-
 const jwt = require("../modules/jwt");
-
 
 module.exports = {
     // 권한 확인 코드
@@ -25,9 +23,9 @@ module.exports = {
             if(token) {
                 const tokenInfo = jwt.verifyJWT(token);
                 if(tokenInfo.isValid) {
-                    res.locals.email = tokenInfo.payload.email;
-                    res.locals.name = tokenInfo.payload.name;
-                    res.locals.type = tokenInfo.payload.type;
+                    res.locals.email    = tokenInfo.payload.email;
+                    res.locals.name     = tokenInfo.payload.name;
+                    res.locals.type     = tokenInfo.payload.type;
                     next();
                 }
                 else

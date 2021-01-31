@@ -4,9 +4,8 @@ const {
     NotExistUserError,
     DBError,
     InconsistAnswerError,
-} = require("../utils/errors");
-
-const findService = require("../services/find-service");
+}                   = require("../utils/errors");
+const findService   = require("../services/find-service");
 
 module.exports = {
     async findEmail(req, res, next) {
@@ -40,27 +39,26 @@ module.exports = {
             },
         };
 
-        const name = req.body.name;
-        const birthDate = req.body.birthDate;
-
-        console.log(name, birthDate);
+        
 
         try {
-            const emailList = await findService.findEmail(name, birthDate);
-            retBody.success.item.emailList = emailList;
+            const name                      = req.body.name;
+            const birthDate                 = req.body.birthDate;
+            const emailList                 = await findService.findEmail(name, birthDate);
+            retBody.success.item.emailList  = emailList;
             res.status(200).json(retBody.success);
         } catch(error) {
             if(error instanceof InvalidParamsError)
-                res.status(400).json(retBody.fail.invalidParams);
+                next(retBody.fail.invalidParams);
 
             else if(error instanceof MissingRequiredParamsError)
-                res.status(400).json(retBody.fail.missingRequiredParams);
+                next(retBody.fail.missingRequiredParams);
 
             else if(error instanceof NotExistUserError)
-                res.status(404).json(retBody.fail.notExistUser);
+                next(retBody.fail.notExistUser);
 
             else if(error instanceof DBError)
-                res.status(500).json(retBody.fail.serverError);
+                next(retBody.fail.serverError);
         }
     },
 
@@ -100,28 +98,29 @@ module.exports = {
             },
         };
 
-        const email = req.body.email;
-        const qid = req.body.qid;
-        const answer = req.body.answer;
+
 
         try {
+            const email     = req.body.email;
+            const qid       = req.body.qid;
+            const answer    = req.body.answer;
             await findService.findPassword(email, qid, answer);
             res.status(200).json(retBody.success);
         } catch(error) {
             if(error instanceof InvalidParamsError)
-                res.status(400).json(retBody.fail.invalidParams);
+                next(retBody.fail.invalidParams);
 
             else if(error instanceof MissingRequiredParamsError)
-                res.status(400).json(retBody.fail.missingRequiredParams);
+                next(retBody.fail.missingRequiredParams);
 
             else if(error instanceof InconsistAnswerError)
-                res.status(400).json(retBody.fail.InconsistAnswer);
+                next(retBody.fail.InconsistAnswer);
 
             else if(error instanceof NotExistUserError)
-                res.status(404).json(retBody.fail.notExistUser);
+                next(retBody.fail.notExistUser);
 
             else if(error instanceof DBError)
-                res.status(500).json(retBody.fail.serverError);
+                next(retBody.fail.serverError);
         }
     },
 }

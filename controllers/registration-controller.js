@@ -4,9 +4,8 @@ const {
     DBError, 
     DuplicatedEmailError, 
     AlreadyExistUserError, 
-} = require("../utils/errors");
-
-const registrationService = require("../services/registration-service");
+}                           = require("../utils/errors");
+const registrationService   = require("../services/registration-service");
 
 module.exports = {
     async registrateUser(req, res, next) {
@@ -39,31 +38,28 @@ module.exports = {
                 },
             },
         };
-        
-        const email = req.body.email;
-        const password = req.body.password;
-        const name = req.body.name;
-        const birthDate = req.body.birthDate;
-        const qid = req.body.qid;
-        const answer = req.body.answer;
     
         try {
+            const email     = req.body.email;
+            const password  = req.body.password;
+            const name      = req.body.name;
+            const birthDate = req.body.birthDate;
+            const qid       = req.body.qid;
+            const answer    = req.body.answer;
             await registrationService.registrateUser(email, password, name, birthDate, qid, answer);
             res.status(201).json(retBody.success);
         } catch(error) {
-            console.log(error);
-            
             if(error instanceof InvalidParamsError)
-                res.status(400).json(retBody.fail.invalidParams);
+                next(retBody.fail.invalidParams);
 
             else if(error instanceof MissingRequiredParamsError)
-                res.status(400).json(retBody.fail.missingRequiredParams);
+                next(retBody.fail.missingRequiredParams);
             
             else if(error instanceof AlreadyExistUserError)
-                res.status(400).json(retBody.fail.alreadyExistUser);
+                next(retBody.fail.alreadyExistUser);
 
             else if(error instanceof DBError)
-                res.status(500).json(retBody.fail.serverError);
+                next(retBody.fail.serverError);
         }
     },
 
@@ -98,25 +94,26 @@ module.exports = {
             },
         };
     
-        const email = req.body.email;
+
     
         try {
+            const email = req.body.email;
             await registrationService.checkEmailDuplication(email);
             res.status(200).json(retBody.success);
         } catch(error) {
             console.log(error.stack);
 
             if(error instanceof InvalidParamsError)
-                res.status(400).json(retBody.fail.invalidParams);
+                next(retBody.fail.invalidParams);
 
             if(error instanceof MissingRequiredParamsError)
-                res.status(400).json(retBody.fail.missingRequiredParams);
+                next(retBody.fail.missingRequiredParams);
 
             else if(error instanceof DuplicatedEmailError)
-                res.status(404).json(retBody.fail.duplicatedEmailExists);
+                next(retBody.fail.duplicatedEmailExists);
             
             else if(error instanceof DBError)
-                res.status(500).json(retBody.fail.serverError);
+                next(retBody.fail.serverError);
         }
     }
 }

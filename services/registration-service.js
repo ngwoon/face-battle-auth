@@ -3,23 +3,20 @@ const {
     DBError, DuplicatedEmailError,
     MissingRequiredParamsError,
     AlreadyExistUserError
-} = require("../utils/errors");
-
+}                       = require("../utils/errors");
 const { 
     DB_USER_CREATE_ERR_MSG,
     DB_USER_FIND_ERR_MSG, 
     DB_USER_QUESTION_CREATE_ERR_MSG 
-} = require("../utils/error-messages");
-
-const { verifyParams } = require("../modules/verify-params");
-const crypto = require("crypto");
-const db = require("../models");
+}                       = require("../utils/error-messages");
+const { verifyParams }  = require("../modules/verify-params");
+const db                = require("../models");
+const crypto            = require("crypto");
 
 module.exports = {
     async registrateUser(email, password, name, birthDate, qid, answer) {
 
         const verifyResult = verifyParams({email, password, name, birthDate, qid, answer});
-
         if(verifyResult.isParamMissed)
             throw new MissingRequiredParamsError();
         
@@ -27,12 +24,10 @@ module.exports = {
             throw new InvalidParamsError();
 
 
-        // 패스워드 해싱
+
         const hashedPassword = crypto.createHash("sha256").update(password).digest("base64");
         const type = 0;
-        const valid = 0;
         let user;
-
         try {
             user = await db.user.findOne({ where: { email, type } , raw: true});
         } catch(error) {
@@ -43,8 +38,10 @@ module.exports = {
         if(user)
             throw new AlreadyExistUserError();
 
+        
+
         try {
-            // 회원 정보 저장
+            const valid = 0;    // 이메일 인증을 받아야 하는 회원이므로 valid를 0으로
             await db.sequelize.transaction(async (t) => {
                 user = await db.user.create({
                     email,
@@ -69,16 +66,16 @@ module.exports = {
     async checkEmailDuplication(email) {
 
         const verifyResult = verifyParams({email});
-
         if(verifyResult.isParamMissed)
             throw new MissingRequiredParamsError();
         
         if(verifyResult.isParamInvalid)
             throw new InvalidParamsError();
+
+        
         
         const type = 0;
         let duplicatedUser;
-
         try {
             duplicatedUser = await db.user.findOne({ where: { email, type } });
         } catch(error) {

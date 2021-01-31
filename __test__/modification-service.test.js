@@ -1,24 +1,20 @@
 const {
     InvalidParamsError,
     MissingRequiredParamsError,
-} = require("../utils/errors");
-
+}                           = require("../utils/errors");
 const {
     TEST_EMAIL,
     TEST_PASSWORD,
     TEST_NORMAL_TYPE,
     NO_AT_EMAIL
-} = require("../utils/user-info-examples");
-
+}                           = require("../utils/user-info-examples");
 const { 
     DB_USER_UPDATE_ERR_MSG 
-} = require("../utils/error-messages");
-
-const modificationService = require("../services/modification-service");
-const db = require("../models");
+}                           = require("../utils/error-messages");
+const modificationService   = require("../services/modification-service");
+const db                    = require("../models");
 
 describe("services/modification-service.js", () => {
-
     afterAll(() => {
         jest.restoreAllMocks();
     });

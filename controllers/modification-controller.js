@@ -1,12 +1,9 @@
 const { 
     InvalidParamsError,
     MissingRequiredParamsError,
-    DBError 
-} = require("../utils/errors");
-
-const modificationService = require("../services/modification-service");
-
-
+    DBError,
+}                           = require("../utils/errors");
+const modificationService   = require("../services/modification-service");
 
 module.exports = {
     async modifyPassword(req, res, next) {
@@ -35,24 +32,25 @@ module.exports = {
             },
         }
         
-        const email = res.locals.email;
-        const newPassword = req.body.password;
-        const type = res.locals.type;
+
 
         try {
+            const newPassword   = req.body.password;
+            const email         = res.locals.email;
+            const type          = res.locals.type;
             await modificationService.modifyPassword(email, newPassword, type);
             res.status(200).json(retBody.success);
         } catch(error) {
             console.log(error);
 
             if(error instanceof InvalidParamsError)
-                res.status(400).json(retBody.fail.invalidParams);
+                next(retBody.fail.invalidParams);
 
             else if(error instanceof MissingRequiredParamsError)
-                res.status(400).json(retBody.fail.missingRequiredParams);
+                next(retBody.fail.missingRequiredParams);
 
             else if(error instanceof DBError)
-                res.status(500).json(retBody.fail.serverError);
+                next(retBody.fail.serverError);
         }
     }
 }

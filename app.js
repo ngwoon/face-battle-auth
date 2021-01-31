@@ -1,5 +1,5 @@
-const dotenv = require("dotenv");
-const path = require('path');
+const dotenv        = require("dotenv");
+const path          = require('path');
 
 if(process.env.NODE_ENV === "development") {
     console.log("NODE_ENV is development");
@@ -12,36 +12,30 @@ if(process.env.NODE_ENV === "development") {
     process.exit(1);
 }
 
+const createError           = require('http-errors');
+const express               = require('express');
+const cookieParser          = require('cookie-parser');
+const logger                = require('morgan');
+const { sequelize }         = require("./models");
+const { authenticateUser }  = require("./middlewares/auth");
 
-const createError = require('http-errors');
-const express = require('express');
-const cookieParser = require('cookie-parser');
-const logger = require('morgan');
-const { sequelize } = require("./models");
-const { authenticateUser } = require("./middlewares/auth");
+const verRouter             = require('./routes/verification');
+const regRouter             = require('./routes/registration');
+const loginRouter           = require('./routes/login');
+const findRouter            = require('./routes/find');
+const modRouter             = require('./routes/modification');
+const imagesRouter          = require('./routes/images');
+const withdrawalRouter      = require('./routes/withdrawal');
 
-const verRouter = require('./routes/verification');
-const regRouter = require('./routes/registration');
-const loginRouter = require('./routes/login');
-const findRouter = require('./routes/find');
-const modRouter = require('./routes/modification');
-const imagesRouter = require('./routes/images');
-
-
-const app = express();
-
+const app                   = express();
 
 // sequelize init
 sequelize.sync();
-
 
 app.use(logger(process.env.LOGGER_MODE));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
-app.use(express.static(path.join(__dirname, "/public")));
-app.set('view engine', "jade");
-
 
 /*
     routers
@@ -52,6 +46,7 @@ app.use("/login", loginRouter);
 app.use("/find", findRouter);
 app.use("/password", authenticateUser, modRouter);
 app.use("/images", authenticateUser, imagesRouter);
+app.use("/withdrawal", authenticateUser, withdrawalRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
