@@ -2,10 +2,10 @@ const {
     DBError
 }                       = require("../utils/errors");
 
-const signOutService    = require("../services/signout-service");
+const withdrawalService    = require("../services/withdrawal-service");
 
 module.exports = {
-    async signOut(req, res, next) {
+    async withdraw(req, res, next) {
         const retBody = {
             success: {
                 resultCode: "200",
@@ -25,7 +25,7 @@ module.exports = {
         const type = res.locals.type;
 
         try {
-            await signOutService.signOut(email, type);
+            await withdrawalService.withdraw(email, type);
             res.status(200).json(retBody.success);
         } catch(error) {
             console.log(error);

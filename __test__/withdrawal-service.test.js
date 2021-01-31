@@ -1,5 +1,5 @@
 
-const signOutService    = require("../services/signout-service");
+const withdrawalService    = require("../services/withdrawal-service");
 const db                = require("../models");
 const { 
     TEST_EMAIL,
@@ -9,7 +9,7 @@ const {
     DB_USER_DELETE_ERR_MSG
 }                       = require("../utils/error-messages");
 
-describe("services/signout-service.js", () => {
+describe("services/withdrawal-service.js", () => {
     
     afterAll(() => {
         jest.restoreAllMocks();
@@ -22,7 +22,7 @@ describe("services/signout-service.js", () => {
                     throw new Error();
                 });
 
-                await expect(signOutService.signOut(TEST_EMAIL, TEST_NORMAL_TYPE))
+                await expect(withdrawalService.withdraw(TEST_EMAIL, TEST_NORMAL_TYPE))
                 .rejects.toThrow(expect.objectContaining({ message: DB_USER_DELETE_ERR_MSG }));
             });
         });

@@ -7,7 +7,7 @@ const {
 const db                = require("../models");
 
 module.exports = {
-    async signOut(email, type) {
+    async withdraw(email, type) {
         try {
             await db.user.destroy({ where: { email, type } });
         } catch(error) {
